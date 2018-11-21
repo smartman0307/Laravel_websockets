@@ -2,10 +2,12 @@
 
 namespace BeyondCode\LaravelWebSockets\LaravelEcho\WebSocket;
 
+use BeyondCode\LaravelWebSockets\LaravelEcho\Pusher\PusherMessage;
 use Ratchet\ConnectionInterface;
 use Ratchet\RFC6455\Messaging\MessageInterface;
 use BeyondCode\LaravelWebSockets\WebSocketController;
 use BeyondCode\LaravelWebSockets\LaravelEcho\Pusher\Channels\ChannelManager;
+use stdClass;
 
 class EchoServer extends WebSocketController
 {

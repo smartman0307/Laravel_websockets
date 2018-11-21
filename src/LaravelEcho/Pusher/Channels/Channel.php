@@ -26,15 +26,15 @@ class Channel
     /**
      * @link https://pusher.com/docs/pusher_protocol#presence-channel-events
      *
-     * @param ConnectionInterface $connection
+     * @param ConnectionInterface $conn
      * @param $payload
      */
-    public function subscribe(ConnectionInterface $connection, $payload)
+    public function subscribe(ConnectionInterface $conn, $payload)
     {
-        $this->saveConnection($connection);
+        $this->saveConnection($conn);
 
         // Send the success event
-        $connection->send(json_encode([
+        $conn->send(json_encode([
             'event' => 'pusher_internal:subscription_succeeded',
             'channel' => $this->channelId
         ]));
