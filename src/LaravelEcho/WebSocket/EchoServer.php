@@ -46,9 +46,9 @@ class EchoServer extends WebSocketController
         ]));
     }
 
-    public function onMessage(ConnectionInterface $connection, MessageInterface $message)
+    public function onMessage(ConnectionInterface $conn, MessageInterface $message)
     {
-        $message = RespondableMessageFactory::createForMessage($message, $connection, $this->channelManager);
+        $message = RespondableMessageFactory::createForMessage($message, $conn, $this->channelManager);
 
         $message->respond();
     }
