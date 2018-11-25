@@ -8,7 +8,7 @@ use BeyondCode\LaravelWebSockets\ClientProviders\ClientProvider;
 use Illuminate\Support\ServiceProvider;
 use BeyondCode\LaravelWebSockets\LaravelEcho\Pusher\Channels\ChannelManager;
 
-class WebSocketsServiceProvider extends ServiceProvider
+class LaravelWebSocketsServiceProvider extends ServiceProvider
 {
     public function boot()
     {

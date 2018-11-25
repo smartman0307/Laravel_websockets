@@ -60,7 +60,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "BeyondCode\\LaravelWebSockets\\WebSocketsServiceProvider"
+                "BeyondCode\\LaravelWebSockets\\LaravelWebSocketsServiceProvider"
             ],
             "aliases": {
                 "WebSocketRouter": "BeyondCode\\LaravelWebSockets\\Facades\\WebSocketRouter"

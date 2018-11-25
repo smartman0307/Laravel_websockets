@@ -11,6 +11,7 @@ class WebSocketController implements MessageComponentInterface
 {
     function onOpen(ConnectionInterface $connection)
     {
+        dump("Client connected");
     }
 
     public function onMessage(ConnectionInterface $connection, MessageInterface $message)
