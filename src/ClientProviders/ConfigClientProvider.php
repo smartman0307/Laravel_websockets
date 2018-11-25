@@ -6,15 +6,6 @@ use Illuminate\Support\Collection;
 
 class ConfigClientProvider implements ClientProvider
 {
-    /**  @return array[BeyondCode\LaravelWebSockets\ClientProviders\Client] */
-    public function all(): array
-    {
-        return $this->allClients()
-            ->map(function ($client) {
-                return $this->instanciate($client);
-            })
-            ->toArray();
-    }
     public function findByAppId(int $appId): ?Client
     {
         $clientAttributes = $this
@@ -33,7 +24,14 @@ class ConfigClientProvider implements ClientProvider
         return $this->instanciate($clientAttributes);
     }
 
-
+    public function all(): array
+    {
+        return $this->allClients()
+            ->map(function ($client) {
+                return $this->instanciate($client);
+            })
+            ->toArray();
+    }
 
     protected function allClients(): Collection
     {
