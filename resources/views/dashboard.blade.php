@@ -14,7 +14,7 @@
 
 <body>
 <div class="container" id="app">
-    <div class="card col-xs-12">
+    <div class="card col-xs-12 mt-4">
         <div class="card-header">
             <form id="connect" class="form-inline" role="form">
                 <label class="my-1 mr-2" for="client">Client:</label>
@@ -105,7 +105,13 @@
                 this.pusher = new Pusher(this.client.appKey, {
                     wsHost: window.location.hostname,
                     wsPort: this.port,
+                    disableStats: true,
                     authEndpoint: '{{ config('websockets.dashboard.path') }}/auth',
+                    auth: {
+                        headers: {
+                            'X-CSRF-Token': "{{ csrf_token() }}"
+                        }
+                    },
                     enabledTransports: ['ws', 'flash']
                 });
 
@@ -166,6 +172,7 @@
 
             sendEvent() {
                 $.post('{{ config('websockets.dashboard.path') }}/event', {
+                    _token: '{{ csrf_token() }}',
                     key: this.client.appKey,
                     secret: this.client.appSecret,
                     appId: this.client.appId,

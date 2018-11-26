@@ -40,6 +40,7 @@ return [
          * Middleware that will be applied to the dashboard routes.
          */
         'middleware' => [
+            'web',
             Authorize::class,
         ],
     ],
@@ -49,7 +50,7 @@ return [
      * Leave this empty if you want to accepts requests from all hosts.
      */
     'allowedOrigins' => [
-        //
+
     ],
 
     /*
