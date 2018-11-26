@@ -61,6 +61,7 @@ class Channel
 
         if (! $this->hasConnections()) {
             event(new ChannelVacated($connection, $this->channelId));
+            Dashboard::vacated($connection, $this->channelId);
         }
     }
 
