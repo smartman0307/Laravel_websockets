@@ -33,6 +33,8 @@ class ConfigClientProvider implements ClientProvider
         return $this->instanciate($clientAttributes);
     }
 
+
+
     protected function allClients(): Collection
     {
         return collect(config('websockets.clients'));

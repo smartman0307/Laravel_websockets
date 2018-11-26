@@ -9,15 +9,10 @@ class TriggerEvent extends EchoController
 {
     public function __invoke(Request $request)
     {
-        $this->ensureValidSignature($request);
+        $this->verifySignature($request);
 
         foreach ($request->json()->get('channels', []) as $channelId) {
-            Dashboard::apiMessage(
-                $request->appId,
-                $channelId,
-                $request->json()->get('name'),
-                $request->json()->get('data')
-            );
+            Dashboard::apiMessage($request->appId, $channelId, $request->json()->get('name'), $request->json()->get('data'));
 
             $channel = $this->channelManager->find($request->appId, $channelId);
 

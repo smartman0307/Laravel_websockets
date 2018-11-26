@@ -2,6 +2,7 @@
 
 namespace BeyondCode\LaravelWebSockets\Exceptions;
 
+
 use Exception;
 
 class InvalidClient extends Exception
@@ -18,6 +19,6 @@ class InvalidClient extends Exception
 
     public static function valueIsRequired($name, int $appId)
     {
-        return new static("{$name} is required but was empty for app id `{$appId}`.");
+        return new static("{$name} is required but was empty for app id {$appId}");
     }
 }

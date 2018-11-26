@@ -1,6 +1,6 @@
 <?php
 
-namespace BeyondCode\LaravelWebsockets\Http\Controllers;
+namespace BeyondCode\LaravelWebSockets\Http\Controllers;
 
 use Pusher\Pusher;
 use Illuminate\Http\Request;
@@ -18,10 +18,6 @@ class SendMessage
         );
 
         return (new PusherBroadcaster($pusher))
-            ->broadcast(
-                [$request->channel],
-                $request->event,
-                json_decode($request->data, true)
-            );
+            ->broadcast([$request->channel], $request->event, json_decode($request->data, true));
     }
 }
