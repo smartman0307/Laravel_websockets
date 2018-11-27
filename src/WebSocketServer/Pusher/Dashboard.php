@@ -6,7 +6,7 @@ use Ratchet\ConnectionInterface;
 use BeyondCode\LaravelWebSockets\WebSocketServer\Pusher\Channels\ChannelManager;
 use stdClass;
 
-class DashboardLogger
+class Dashboard
 {
     const LOG_CHANNEL_PREFIX = 'private-websockets-dashboard-';
     const TYPE_DISCONNECTION = 'disconnection';
