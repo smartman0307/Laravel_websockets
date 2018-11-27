@@ -17,12 +17,17 @@ use BeyondCode\LaravelWebSockets\Exceptions\InvalidWebSocketController;
 
 class Router
 {
-    /** @var RouteCollection */
+    /** @var \Symfony\Component\Routing\RouteCollection */
     protected $routes;
 
     public function __construct()
     {
         $this->routes = new RouteCollection;
+    }
+
+    public function getRoutes(): RouteCollection
+    {
+        return $this->routes;
     }
 
     public function websocket(string $uri, $action)
@@ -81,26 +86,27 @@ class Router
     }
 
     /**
-     * @param $action
-     * @return WsServer|HttpServerInterface
+     * @param string $action
+     *
+     * @return \Ratchet\WebSocket\WsServer|\Ratchet\Http\HttpServerInterface
      */
-    protected function wrapAction($action)
+    protected function wrapAction(string $action)
     {
         if (is_subclass_of($action, MessageComponentInterface::class)) {
-            $app = app($action);
-
-            if (MessageLogger::isEnabled()) {
-                $app = MessageLogger::decorate($app);
-            }
-
-            return new WsServer($app);
+            return $this->createWebSocketsServer($action);
         }
 
         return app($action);
     }
 
-    public function getRoutes(): RouteCollection
+    protected function createWebSocketsServer(MessageComponentInterface $action): WsServer
     {
-        return $this->routes;
+        $app = app($action);
+
+        if (MessageLogger::isEnabled()) {
+            $app = MessageLogger::decorate($app);
+        }
+
+        return new WsServer($app);
     }
 }
