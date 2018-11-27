@@ -8,14 +8,14 @@ use Ratchet\ConnectionInterface;
 use Ratchet\RFC6455\Messaging\MessageInterface;
 use Ratchet\WebSocket\MessageComponentInterface;
 
-class WebsocketLogger extends Logger implements MessageComponentInterface
+class MessageLogger extends Logger implements MessageComponentInterface
 {
     /** @var \Ratchet\Http\HttpServerInterface */
     protected $app;
 
-    public static function decorate(MessageComponentInterface $app): WebsocketLogger
+    public static function decorate(MessageComponentInterface $app): MessageLogger
     {
-        $logger = app(WebsocketLogger::class);
+        $logger = app(MessageLogger::class);
 
         return $logger->setApp($app);
     }
@@ -45,7 +45,7 @@ class WebsocketLogger extends Logger implements MessageComponentInterface
 
     public function onClose(ConnectionInterface $connection)
     {
-        $this->warn("{optional($connection->client)->appId}: connection id {$connection->socketId} closed.");
+        $this->warn("{$connection->client->appId}: connection id {$connection->socketId} closed.");
 
         $this->app->onClose(ConnectionLogger::decorate($connection));
     }
