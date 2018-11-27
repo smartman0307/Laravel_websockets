@@ -1,9 +1,9 @@
 <?php
 
-namespace BeyondCode\LaravelWebSockets\WebSocket\Messages;
+namespace BeyondCode\LaravelWebSockets\WebSocketServer\Messages;
 
 use BeyondCode\LaravelWebSockets\Events\ClientMessageSent;
-use BeyondCode\LaravelWebSockets\WebSocket\Pusher\Channels\ChannelManager;
+use BeyondCode\LaravelWebSockets\WebSocketServer\Pusher\Channels\ChannelManager;
 use Ratchet\ConnectionInterface;
 use stdClass;
 
@@ -15,7 +15,7 @@ class Message implements RespondableMessage
     /** @var \Ratchet\ConnectionInterface */
     protected $connection;
 
-    /** @var \BeyondCode\LaravelWebSockets\WebSocket\Pusher\Channels\ChannelManager */
+    /** @var \BeyondCode\LaravelWebSockets\WebSocketServer\Pusher\Channels\ChannelManager */
     protected $channelManager;
 
     public function __construct(stdClass $payload, ConnectionInterface $connection, ChannelManager $channelManager)

@@ -1,12 +1,12 @@
 <?php
 
-namespace BeyondCode\LaravelWebSockets\WebSocket\Pusher;
+namespace BeyondCode\LaravelWebSockets\WebSocketServer\Pusher;
 
 use Ratchet\ConnectionInterface;
-use BeyondCode\LaravelWebSockets\WebSocket\Pusher\Channels\ChannelManager;
+use BeyondCode\LaravelWebSockets\WebSocketServer\Pusher\Channels\ChannelManager;
 use stdClass;
 
-class Dashboard
+class DashboardLogger
 {
     const LOG_CHANNEL_PREFIX = 'private-websockets-dashboard-';
     const TYPE_DISCONNECTION = 'disconnection';
