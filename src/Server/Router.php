@@ -7,7 +7,8 @@ use BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchChannel;
 use BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchChannels;
 use BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchUsers;
 use BeyondCode\LaravelWebSockets\HttpApi\Controllers\TriggerEvent;
-use BeyondCode\LaravelWebSockets\WebSockets\Controllers\PusherController;
+use BeyondCode\LaravelWebSockets\WebSockets\Controllers\WebSocketHandler;
+use Ratchet\WebSocket\MessageComponentInterface;
 use Ratchet\WebSocket\WsServer;
 use Symfony\Component\Routing\Route;
 use Ratchet\Http\HttpServerInterface;
@@ -16,7 +17,7 @@ use BeyondCode\LaravelWebSockets\Exceptions\InvalidWebSocketController;
 
 class Router
 {
-    /** @var \Symfony\Component\Routing\RouteCollection */
+    /** @var RouteCollection */
     protected $routes;
 
     public function __construct()
@@ -70,7 +71,7 @@ class Router
 
     public function echo()
     {
-        $this->get('/app/{appKey}', PusherController::class);
+        $this->get('/app/{appKey}', WebSocketHandler::class);
 
         $this->get('/apps/{appId}/channels', FetchChannels::class);
         $this->get('/apps/{appId}/channels/{channelName}', FetchChannel::class);
@@ -81,12 +82,11 @@ class Router
 
     /**
      * @param $action
-     *
-     * @return \Ratchet\WebSocket\WsServer|\Ratchet\Http\HttpServerInterface
+     * @return WsServer|HttpServerInterface
      */
     protected function wrapAction($action)
     {
-        if (is_subclass_of($action, WebSocketController::class)) {
+        if (is_subclass_of($action, MessageComponentInterface::class)) {
             $app = app($action);
 
             if (MessageLogger::isEnabled()) {
