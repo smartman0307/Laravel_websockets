@@ -3,7 +3,6 @@
 namespace BeyondCode\LaravelWebSockets\LaravelEcho\Pusher\Channels;
 
 use Ratchet\ConnectionInterface;
-use stdClass;
 
 class PresenceChannel extends Channel
 {
@@ -17,7 +16,7 @@ class PresenceChannel extends Channel
     /*
      * @link https://pusher.com/docs/pusher_protocol#presence-channel-events
      */
-    public function subscribe(ConnectionInterface $connection, stdClass $payload)
+    public function subscribe(ConnectionInterface $connection, $payload)
     {
         $this->verifySignature($connection, $payload);
 

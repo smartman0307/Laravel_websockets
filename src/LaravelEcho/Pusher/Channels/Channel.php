@@ -5,7 +5,8 @@ namespace BeyondCode\LaravelWebSockets\LaravelEcho\Pusher\Channels;
 use BeyondCode\LaravelWebSockets\Events\ChannelOccupied;
 use BeyondCode\LaravelWebSockets\Events\ChannelVacated;
 use BeyondCode\LaravelWebSockets\Events\SubscribedToChannel;
-use BeyondCode\LaravelWebSockets\LaravelEcho\Pusher\Exceptions\InvalidSignature;
+use BeyondCode\LaravelWebSockets\LaravelEcho\Pusher\Dashboard;
+use BeyondCode\LaravelWebSockets\LaravelEcho\Pusher\Exceptions\InvalidSignatureException;
 use Illuminate\Support\Collection;
 use Ratchet\ConnectionInterface;
 use stdClass;
@@ -39,7 +40,7 @@ class Channel
         }
 
         if (str_after($auth, ':') !== hash_hmac('sha256', $signature, $connection->client->appSecret)) {
-            throw new InvalidSignature();
+            throw new InvalidSignatureException();
         }
     }
 

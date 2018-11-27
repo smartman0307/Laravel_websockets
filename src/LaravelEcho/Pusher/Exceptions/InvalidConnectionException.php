@@ -2,7 +2,7 @@
 
 namespace BeyondCode\LaravelWebSockets\LaravelEcho\Pusher\Exceptions;
 
-class InvalidConnection extends PusherException
+class InvalidConnectionException extends PusherException
 {
     public function __construct()
     {

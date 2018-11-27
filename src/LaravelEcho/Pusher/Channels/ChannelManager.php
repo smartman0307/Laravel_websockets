@@ -28,7 +28,7 @@ class ChannelManager
         return $this->channels[$appId][$channelId] ?? null;
     }
 
-    protected function detectChannelClass(string $channelId): string
+    protected function detectChannelClass($channelId): string
     {
         if (starts_with($channelId, 'private-')) {
             return PrivateChannel::class;
