@@ -47,10 +47,6 @@ class ChannelManager
 
     public function removeFromAllChannels(ConnectionInterface $connection)
     {
-        if (! isset($connection->client)) {
-            return;
-        }
-
         collect($this->channels[$connection->client->appId])->each->unsubscribe($connection);
 
         collect($this->channels[$connection->client->appId])
