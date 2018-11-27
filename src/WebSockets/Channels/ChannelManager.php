@@ -47,8 +47,18 @@ class ChannelManager
 
     public function removeFromAllChannels(ConnectionInterface $connection)
     {
+        if (! isset($connection->client)) {
+            return;
+        }
+
+        /**
+         * Remove the connection from all channels.
+         */
         collect($this->channels[$connection->client->appId])->each->unsubscribe($connection);
 
+        /**
+         * Unset all channels that have no connections so we don't leak memory.
+         */
         collect($this->channels[$connection->client->appId])
             ->reject->hasConnections()
             ->each(function (Channel $channel, string $channelId) use ($connection) {
