@@ -87,7 +87,7 @@ class WebSocketServer
 
         $app = new OriginCheck($router, config('websockets.allowedOrigins', []));
 
-        $httpServer = new HttpServer($app, config('websockets.maxRequestSizeInKb') * 1024);
+        $httpServer = new HttpServer($app, config('websockets.maxRequestSize'));
 
         if (HttpLogger::isEnabled()) {
             $httpServer = HttpLogger::decorate($httpServer);
