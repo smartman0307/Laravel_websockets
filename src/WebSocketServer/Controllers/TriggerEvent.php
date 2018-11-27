@@ -5,7 +5,7 @@ namespace BeyondCode\LaravelWebSockets\WebSocketServer\Controllers;
 use BeyondCode\LaravelWebSockets\Events\ApiMessageSent;
 use Illuminate\Http\Request;
 
-class TriggerEvent extends Controller
+class TriggerEvent extends EchoController
 {
     public function __invoke(Request $request)
     {

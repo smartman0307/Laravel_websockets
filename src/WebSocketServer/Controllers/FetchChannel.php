@@ -5,7 +5,7 @@ namespace BeyondCode\LaravelWebSockets\WebSocketServer\Controllers;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class FetchChannel extends Controller
+class FetchChannel extends EchoController
 {
     public function __invoke(Request $request)
     {
