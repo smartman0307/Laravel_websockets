@@ -1,4 +1,4 @@
-# Laravel WebSockets 🛰
+# Laravel WebSockets 🚀
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/beyondcode/laravel-websockets.svg?style=flat-square)](https://packagist.org/packages/beyondcode/laravel-websockets)
 [![Build Status](https://img.shields.io/travis/beyondcode/laravel-websockets/master.svg?style=flat-square)](https://travis-ci.org/beyondcode/laravel-websockets)
