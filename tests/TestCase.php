@@ -8,7 +8,6 @@ use BeyondCode\LaravelWebSockets\WebSockets\WebSocketHandler;
 use GuzzleHttp\Psr7\Request;
 use BeyondCode\LaravelWebSockets\Tests\Mocks\Connection;
 use BeyondCode\LaravelWebSockets\WebSocketsServiceProvider;
-use Illuminate\Support\Facades\Route;
 use Ratchet\ConnectionInterface;
 
 abstract class TestCase extends \Orchestra\Testbench\TestCase
@@ -26,8 +25,6 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         $this->pusherServer = app(WebSocketHandler::class);
 
         $this->channelManager = app(ChannelManager::class);
-
-        Route::webSockets();
     }
 
     protected function getPackageProviders($app)
@@ -51,8 +48,6 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         include_once __DIR__.'/../database/migrations/create_websockets_statistics_entries_table.php.stub';
 
         (new \CreateWebSocketsStatisticsEntriesTable())->up();
-
-
     }
 
     protected function getWebSocketConnection(string $url = '/?appKey=TestKey'): Connection
