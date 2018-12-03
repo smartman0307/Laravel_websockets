@@ -49,7 +49,7 @@ class Logger
 
     protected function initializeStatistics($id)
     {
-        if (!isset($this->statistics[$id])) {
+        if (!isset($this->statistics[$connection->app->id])) {
             $this->statistics[$id] = new Statistic($id);
         }
     }
