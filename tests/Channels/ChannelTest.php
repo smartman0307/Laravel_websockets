@@ -135,7 +135,7 @@ class ChannelTest extends TestCase
     /** @test */
     public function it_responds_correctly_to_the_ping_message()
     {
-        $connection = $this->getConnectedWebSocketConnection();
+        $connection = $this->getWebSocketConnection();
 
         $message = new Message(json_encode([
             'event' => 'pusher:ping',

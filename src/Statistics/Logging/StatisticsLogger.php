@@ -6,12 +6,12 @@ use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
 use Illuminate\Support\Collection;
 use Ratchet\ConnectionInterface;
 
-class Logger
+class StatisticsLogger
 {
     /** @var Statistic[] */
     protected $statistics = [];
 
-    /** @var ChannelManager */
+    /** @var \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager */
     protected $channelManager;
 
     public function __construct(ChannelManager $channelManager)
