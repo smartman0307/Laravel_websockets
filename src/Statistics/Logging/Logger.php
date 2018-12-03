@@ -57,9 +57,7 @@ class Logger
     public function save()
     {
         foreach ($this->statistics as $appId => $statistic) {
-            if ($statistic->isEnabled()) {
-                // TODO: perform http request
-            }
+            // TODO: perform http request
 
             // Reset connection and message count
             $connections = Collection::make($this->channelManager->getChannels($appId))->sum(function ($channel) {
