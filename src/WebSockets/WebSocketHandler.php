@@ -3,7 +3,7 @@
 namespace BeyondCode\LaravelWebSockets\WebSockets;
 
 use BeyondCode\LaravelWebSockets\Dashboard\DashboardLogger;
-use BeyondCode\LaravelWebSockets\Events\ConnectionEstablished;
+use BeyondCode\LaravelWebSockets\Facades\StatisticsLogger;
 use BeyondCode\LaravelWebSockets\WebSockets\Exceptions\WebSocketException;
 use BeyondCode\LaravelWebSockets\WebSockets\Messages\PusherMessageFactory;
 use BeyondCode\LaravelWebSockets\QueryParameters;
@@ -38,6 +38,8 @@ class WebSocketHandler implements MessageComponentInterface
         $message = PusherMessageFactory::createForMessage($message, $connection, $this->channelManager);
 
         $message->respond();
+
+        StatisticsLogger::webSocketMessage($connection);
     }
 
     public function onClose(ConnectionInterface $connection)
@@ -45,6 +47,8 @@ class WebSocketHandler implements MessageComponentInterface
         $this->channelManager->removeFromAllChannels($connection);
 
         DashboardLogger::disconnection($connection);
+
+        StatisticsLogger::disconnection($connection);
     }
 
     public function onError(ConnectionInterface $connection, Exception $exception)
@@ -89,6 +93,8 @@ class WebSocketHandler implements MessageComponentInterface
         ]));
 
         DashboardLogger::connection($connection);
+
+        StatisticsLogger::connection($connection);
 
         return $this;
     }

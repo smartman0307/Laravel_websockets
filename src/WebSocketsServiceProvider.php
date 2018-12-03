@@ -7,7 +7,7 @@ use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\SendMessage;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\ShowDashboard;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Middleware\Authorize;
 use BeyondCode\LaravelWebSockets\Server\Router;
-use BeyondCode\LaravelWebSockets\Statistics\Http\Controllers\WebsocketStatisticsEntriesController;
+use BeyondCode\LaravelWebSockets\Statistics\Logging\Logger;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use BeyondCode\LaravelWebSockets\Apps\AppProvider;
@@ -51,6 +51,10 @@ class WebSocketsServiceProvider extends ServiceProvider
             return new ChannelManager();
         });
 
+        $this->app->singleton('websockets.statisticslogger', function() {
+            return new Logger(app(ChannelManager::class));
+        });
+
         $this->app->singleton(AppProvider::class, function() {
             return app(config('websockets.app_provider'));
         });
@@ -58,16 +62,11 @@ class WebSocketsServiceProvider extends ServiceProvider
 
     protected function registerRouteMacro()
     {
-        Route::macro('webSockets', function($prefix = 'websockets') {
+        Route::macro('webSocketsDashboard', function($prefix = 'websockets') {
             Route::prefix($prefix)->namespace('\\')->middleware(Authorize::class)->group(function() {
                 Route::get('/',  ShowDashboard::class);
                 Route::post('auth', AuthenticateDashboard::class);
                 Route::post('event', SendMessage::class);
-            });
-
-            //TODO: add middleware
-            Route::prefix($prefix)->namespace('\\')->group(function() {
-                Route::post('statistics', [WebsocketStatisticsEntriesController::class, 'store']);
             });
         });
     }
