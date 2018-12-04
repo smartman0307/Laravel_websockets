@@ -6,7 +6,8 @@ use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\AuthenticateDashboar
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\DashboardApiController;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\SendMessage;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\ShowDashboard;
-use BeyondCode\LaravelWebSockets\Dashboard\Http\Middleware\Authorize;
+use BeyondCode\LaravelWebSockets\Dashboard\Http\Middleware\Authorize as AuthorizeDashboard;
+use BeyondCode\LaravelWebSockets\Statistics\Http\Middleware\Authorize as AuthorizeStatistics;
 use BeyondCode\LaravelWebSockets\Server\Router;
 use BeyondCode\LaravelWebSockets\Statistics\Http\Controllers\WebSocketStatisticsEntriesController;
 use BeyondCode\LaravelWebSockets\Statistics\Logger\HttpStatisticsLogger;
@@ -32,8 +33,7 @@ class WebSocketsServiceProvider extends ServiceProvider
         }
 
         $this
-            ->registerRouteMacro()
-            ->registerStatisticRoute()
+            ->registerRoutes()
             ->registerDashboardGate();
 
         $this->loadViewsFrom(__DIR__ . '/../resources/views/', 'websockets');
@@ -60,24 +60,19 @@ class WebSocketsServiceProvider extends ServiceProvider
         });
     }
 
-    protected function registerRouteMacro()
+    protected function registerRoutes()
     {
-        Route::macro('webSockets', function ($prefix = 'laravel-websockets') {
-            Route::prefix($prefix)->namespace('\\')->middleware(Authorize::class)->group(function () {
+        Route::prefix(config('websockets.path'))->group(function() {
+            Route::middleware(AuthorizeDashboard::class)->group(function() {
                 Route::get('/', ShowDashboard::class);
-                Route::get('/api/{appId}/statistics', DashboardApiController::class . '@getStatistics');
+                Route::get('/api/{appId}/statistics', [DashboardApiController::class,  'getStatistics']);
                 Route::post('auth', AuthenticateDashboard::class);
                 Route::post('event', SendMessage::class);
             });
-        });
 
-        return $this;
-    }
-
-    protected function registerStatisticRoute()
-    {
-        Route::prefix('/laravel-websockets')->namespace('\\')->group(function () {
-            Route::post('statistics', [WebSocketStatisticsEntriesController::class, 'store']);
+            Route::middleware(AuthorizeStatistics::class)->group(function() {
+                Route::post('statistics', [WebSocketStatisticsEntriesController::class, 'store']);
+            });
         });
 
         return $this;
