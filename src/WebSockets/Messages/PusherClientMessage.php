@@ -42,6 +42,6 @@ class PusherClientMessage implements PusherMessage
 
         $channel = $this->channelManager->find($this->connection->app->id, $this->payload->channel);
 
-        optional($channel)->broadcastToOthers($this->connection, $this->payload);
+        optional($channel)->broadcast($this->payload);
     }
 }

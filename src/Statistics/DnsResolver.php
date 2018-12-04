@@ -1,6 +1,5 @@
 <?php
 
-
 namespace BeyondCode\LaravelWebSockets\Statistics;
 
 use React\Dns\Resolver\Resolver;
