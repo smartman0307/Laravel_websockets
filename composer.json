@@ -1,6 +1,6 @@
 {
     "name": "beyondcode/laravel-websockets",
-    "description": "An easy to use WebSocket server",
+    "description": "",
     "keywords": [
         "beyondcode",
         "laravel-websockets"
@@ -37,7 +37,7 @@
     },
     "require-dev": {
         "mockery/mockery": "^1.2",
-        "orchestra/testbench": "3.7.*",
+        "orchestra/testbench": "~3.5",
         "phpunit/phpunit": "^7.0"
     },
     "autoload": {
