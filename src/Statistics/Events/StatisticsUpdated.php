@@ -3,7 +3,6 @@
 namespace BeyondCode\LaravelWebsockets\Statistics\Events;
 
 use BeyondCode\LaravelWebSockets\Dashboard\DashboardLogger;
-use BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Queue\SerializesModels;
@@ -12,30 +11,27 @@ class StatisticsUpdated implements ShouldBroadcast
 {
     use SerializesModels;
 
-    /** @var \BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry */
-    protected $webSocketsStatisticsEntry;
+    public $statisticModel;
 
-    public function __construct(WebSocketsStatisticsEntry $webSocketsStatisticsEntry)
+    public function __construct($statisticModel)
     {
-        $this->webSocketsStatisticsEntry = $webSocketsStatisticsEntry;
+        $this->statisticModel = $statisticModel;
     }
 
     public function broadcastWith()
     {
         return [
-            'time' => $this->webSocketsStatisticsEntry->created_at->timestamp,
-            'app_id' => $this->webSocketsStatisticsEntry->appId,
-            'peak_connection_count' => $this->webSocketsStatisticsEntry->peakConnectionCount,
-            'websocket_message_count' => $this->webSocketsStatisticsEntry->webSocketMessageCount,
-            'api_message_count' => $this->webSocketsStatisticsEntry->apiMessageCount,
+            'time' => (string)$this->statisticModel->created_at,
+            'app_id' => $this->statisticModel->app_id,
+            'peak_connection_count' => $this->statisticModel->peak_connection_count,
+            'websocket_message_count' => $this->statisticModel->websocket_message_count,
+            'api_message_count' => $this->statisticModel->api_message_count,
         ];
     }
 
     public function broadcastOn()
     {
-        $channelName = str_after(DashboardLogger::LOG_CHANNEL_PREFIX . 'statistics', 'private-');
-
-        return new PrivateChannel($channelName);
+        return new PrivateChannel(str_after(DashboardLogger::LOG_CHANNEL_PREFIX . 'statistics', 'private-'));
     }
 
     public function broadcastAs()

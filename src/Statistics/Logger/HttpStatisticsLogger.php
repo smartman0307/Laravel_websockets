@@ -11,13 +11,13 @@ use Ratchet\ConnectionInterface;
 
 class HttpStatisticsLogger implements StatisticsLogger
 {
-    /** @var \BeyondCode\LaravelWebSockets\Statistics\Statistic[] */
+    /** @var Statistic[] */
     protected $statistics = [];
 
     /** @var \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager */
     protected $channelManager;
 
-    /** @var \Clue\React\Buzz\Browser */
+    /** @var Browser */
     protected $browser;
 
     public function __construct(ChannelManager $channelManager, Browser $browser)
@@ -29,39 +29,37 @@ class HttpStatisticsLogger implements StatisticsLogger
 
     public function webSocketMessage(ConnectionInterface $connection)
     {
-        $this
-            ->findOrMakeStatisticForAppId($connection->app->id)
-            ->webSocketMessage();
+        $this->initializeStatistics($connection->app->id);
+
+        $this->statistics[$connection->app->id]->webSocketMessage();
     }
 
     public function apiMessage($appId)
     {
-        $this
-            ->findOrMakeStatisticForAppId($appId)
-            ->apiMessage();
+        $this->initializeStatistics($appId);
+
+        $this->statistics[$appId]->apiMessage();
     }
 
     public function connection(ConnectionInterface $connection)
     {
-        $this
-            ->findOrMakeStatisticForAppId($connection->app->id)
-            ->connection();
+        $this->initializeStatistics($connection->app->id);
+
+        $this->statistics[$connection->app->id]->connection();
     }
 
     public function disconnection(ConnectionInterface $connection)
     {
-        $this
-            ->findOrMakeStatisticForAppId($connection->app->id)
-            ->disconnection();
+        $this->initializeStatistics($connection->app->id);
+
+        $this->statistics[$connection->app->id]->disconnection();
     }
 
-    protected function findOrMakeStatisticForAppId($appId): Statistic
+    protected function initializeStatistics($id)
     {
-        if (!isset($this->statistics[$appId])) {
-            $this->statistics[$appId] = new Statistic($appId);
+        if (!isset($this->statistics[$id])) {
+            $this->statistics[$id] = new Statistic($id);
         }
-
-        return $this->statistics[$appId];
     }
 
     public function save()
@@ -72,15 +70,19 @@ class HttpStatisticsLogger implements StatisticsLogger
                 continue;
             }
 
-            $this
-                ->browser
+            $this->browser
                 ->post(
                     action([WebSocketStatisticsEntriesController::class, 'store']),
                     ['Content-Type' => 'application/json'],
                     stream_for(json_encode($statistic->toArray()))
                 );
 
-            $currentConnectionCount = $this->channelManager->getConnectionCount($appId);
+            // Reset connection and message count
+            $currentConnectionCount = collect($this->channelManager->getChannels($appId))
+                ->sum(function ($channel) {
+                    return count($channel->getSubscribedConnections());
+                });
+
             $statistic->reset($currentConnectionCount);
         }
     }

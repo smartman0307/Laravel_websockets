@@ -46,12 +46,6 @@ class ChannelManager
         return $this->channels[$appId] ?? [];
     }
 
-    public function getConnectionCount(string $appId): int
-    {
-        return collect($this->getChannels($appId))
-            ->sum->getSubscribedConnections();
-    }
-
     public function removeFromAllChannels(ConnectionInterface $connection)
     {
         if (!isset($connection->app)) {
