@@ -57,11 +57,6 @@ return [
     ],
 
     /*
-     * This path will be used to register the necessary routes for the package.
-     */
-    'path' => 'laravel-websockets',
-
-    /*
      * Define the optional SSL context for your WebSocket connections.
      * You can see all available options at: http://php.net/manual/en/context.ssl.php
      */
