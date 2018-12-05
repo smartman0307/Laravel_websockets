@@ -9,7 +9,7 @@
             integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
             crossorigin="anonymous"></script>
     <script src="https://js.pusher.com/4.3/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 
@@ -109,7 +109,7 @@
         methods: {
             connect() {
                 this.pusher = new Pusher(this.app.key, {
-                    wsHost: this.app.host === null ? window.location.hostname : this.app.host,
+                    wsHost: window.location.hostname,
                     wsPort: this.port,
                     disableStats: true,
                     authEndpoint: '/{{ request()->path() }}/auth',
