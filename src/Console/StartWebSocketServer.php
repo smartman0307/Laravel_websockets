@@ -19,7 +19,7 @@ use BeyondCode\LaravelWebSockets\Statistics\Logger\StatisticsLogger as Statistic
 
 class StartWebSocketServer extends Command
 {
-    protected $signature = 'websockets:serve {--host=0.0.0.0} {--port=6001} {--debug : Forces the loggers to be enabled and thereby overriding the app.debug config setting } ';
+    protected $signature = 'websockets:serve {--host=0.0.0.0} {--port=6001} ';
 
     protected $description = 'Start the Laravel WebSocket Server';
 
@@ -48,6 +48,10 @@ class StartWebSocketServer extends Command
     {
         $connector = new Connector($this->loop, [
             'dns' => new DnsResolver(),
+            'tls' => [
+                'verify_peer' => config('app.env') === 'production',
+                'verify_peer_name' => config('app.env') === 'production'
+            ]
         ]);
 
         $browser = new Browser($this->loop, $connector);
@@ -67,7 +71,7 @@ class StartWebSocketServer extends Command
     {
         app()->singleton(HttpLogger::class, function () {
             return (new HttpLogger($this->output))
-                ->enable($this->option('debug') ?: config('app.debug'))
+                ->enable(config('app.debug'))
                 ->verbose($this->output->isVerbose());
         });
 
@@ -78,7 +82,7 @@ class StartWebSocketServer extends Command
     {
         app()->singleton(WebsocketsLogger::class, function () {
             return (new WebsocketsLogger($this->output))
-                ->enable($this->option('debug') ?: config('app.debug'))
+                ->enable(config('app.debug'))
                 ->verbose($this->output->isVerbose());
         });
 
