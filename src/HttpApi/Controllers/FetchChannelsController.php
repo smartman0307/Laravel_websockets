@@ -2,7 +2,6 @@
 
 namespace BeyondCode\LaravelWebSockets\HttpApi\Controllers;
 
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\PresenceChannel;
@@ -17,7 +16,7 @@ class FetchChannelsController extends Controller
 
         if ($request->has('filter_by_prefix')) {
             $channels = $channels->filter(function ($channel, $channelName) use ($request) {
-                return Str::startsWith($channelName, $request->filter_by_prefix);
+                return starts_with($channelName, $request->filter_by_prefix);
             });
         }
 

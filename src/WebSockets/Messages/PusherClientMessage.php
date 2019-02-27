@@ -3,7 +3,6 @@
 namespace BeyondCode\LaravelWebSockets\WebSockets\Messages;
 
 use stdClass;
-use Illuminate\Support\Str;
 use Ratchet\ConnectionInterface;
 use BeyondCode\LaravelWebSockets\Dashboard\DashboardLogger;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
@@ -30,7 +29,7 @@ class PusherClientMessage implements PusherMessage
 
     public function respond()
     {
-        if (! Str::startsWith($this->payload->event, 'client-')) {
+        if (! starts_with($this->payload->event, 'client-')) {
             return;
         }
 

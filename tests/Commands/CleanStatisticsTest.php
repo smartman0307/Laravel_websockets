@@ -10,7 +10,7 @@ use BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry;
 
 class CleanStatisticsTest extends TestCase
 {
-    public function setUp(): void
+    public function setUp()
     {
         parent::setUp();
 

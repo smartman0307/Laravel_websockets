@@ -10,7 +10,7 @@ class ConfigAppProviderTest extends TestCase
     /** @var \BeyondCode\LaravelWebSockets\Apps\ConfigAppProvider */
     protected $configAppProvider;
 
-    public function setUp(): void
+    public function setUp()
     {
         parent::setUp();
 

@@ -19,7 +19,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     /** @var \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager */
     protected $channelManager;
 
-    public function setUp(): void
+    public function setUp()
     {
         parent::setUp();
 
