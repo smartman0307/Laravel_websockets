@@ -65,19 +65,6 @@ class HttpStatisticsLogger implements StatisticsLogger
         return $this->statistics[$appId];
     }
 
-    protected function getUrl(): string
-    {
-        $action = [WebSocketStatisticsEntriesController::class, 'store'];
-
-        $url_override = config('websockets.statistics.base_url_override', null);
-
-        if ($url_override !== null) {
-            return $url_override.action($action, [], false);
-        }
-
-        return action($action);
-    }
-
     public function save()
     {
         foreach ($this->statistics as $appId => $statistic) {
@@ -92,7 +79,7 @@ class HttpStatisticsLogger implements StatisticsLogger
             $this
                 ->browser
                 ->post(
-                    $this->getUrl(),
+                    action([WebSocketStatisticsEntriesController::class, 'store']),
                     ['Content-Type' => 'application/json'],
                     stream_for(json_encode($postData))
                 );
