@@ -19,7 +19,7 @@ class ConfigAppProvider implements AppProvider
     {
         return $this->apps
             ->map(function (array $appAttributes) {
-                return $this->instantiate($appAttributes);
+                return $this->instanciate($appAttributes);
             })
             ->toArray();
     }
@@ -30,7 +30,7 @@ class ConfigAppProvider implements AppProvider
             ->apps
             ->firstWhere('id', $appId);
 
-        return $this->instantiate($appAttributes);
+        return $this->instanciate($appAttributes);
     }
 
     public function findByKey(string $appKey): ?App
@@ -39,7 +39,7 @@ class ConfigAppProvider implements AppProvider
             ->apps
             ->firstWhere('key', $appKey);
 
-        return $this->instantiate($appAttributes);
+        return $this->instanciate($appAttributes);
     }
 
     public function findBySecret(string $appSecret): ?App
@@ -48,10 +48,10 @@ class ConfigAppProvider implements AppProvider
             ->apps
             ->firstWhere('secret', $appSecret);
 
-        return $this->instantiate($appAttributes);
+        return $this->instanciate($appAttributes);
     }
 
-    protected function instantiate(?array $appAttributes): ?App
+    protected function instanciate(?array $appAttributes): ?App
     {
         if (! $appAttributes) {
             return null;
@@ -69,6 +69,10 @@ class ConfigAppProvider implements AppProvider
 
         if (isset($appAttributes['host'])) {
             $app->setHost($appAttributes['host']);
+        }
+
+        if (isset($appAttributes['path'])) {
+            $app->setPath($appAttributes['path']);
         }
 
         $app
