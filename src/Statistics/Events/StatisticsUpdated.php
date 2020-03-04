@@ -2,12 +2,12 @@
 
 namespace BeyondCode\LaravelWebSockets\Statistics\Events;
 
-use BeyondCode\LaravelWebSockets\Dashboard\DashboardLogger;
-use BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry;
+use Illuminate\Support\Str;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Str;
+use BeyondCode\LaravelWebSockets\Dashboard\DashboardLogger;
+use BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry;
 
 class StatisticsUpdated implements ShouldBroadcast
 {

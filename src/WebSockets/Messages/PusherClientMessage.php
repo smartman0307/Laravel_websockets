@@ -2,11 +2,11 @@
 
 namespace BeyondCode\LaravelWebSockets\WebSockets\Messages;
 
-use BeyondCode\LaravelWebSockets\Dashboard\DashboardLogger;
-use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
+use stdClass;
 use Illuminate\Support\Str;
 use Ratchet\ConnectionInterface;
-use stdClass;
+use BeyondCode\LaravelWebSockets\Dashboard\DashboardLogger;
+use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
 
 class PusherClientMessage implements PusherMessage
 {

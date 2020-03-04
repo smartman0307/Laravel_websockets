@@ -2,8 +2,8 @@
 
 namespace BeyondCode\LaravelWebSockets\Statistics\Rules;
 
-use BeyondCode\LaravelWebSockets\Apps\AppProvider;
 use Illuminate\Contracts\Validation\Rule;
+use BeyondCode\LaravelWebSockets\Apps\AppProvider;
 
 class AppId implements Rule
 {

@@ -2,8 +2,8 @@
 
 namespace BeyondCode\LaravelWebSockets\Tests\ClientProviders;
 
-use BeyondCode\LaravelWebSockets\Apps\ConfigAppProvider;
 use BeyondCode\LaravelWebSockets\Tests\TestCase;
+use BeyondCode\LaravelWebSockets\Apps\ConfigAppProvider;
 
 class ConfigAppProviderTest extends TestCase
 {

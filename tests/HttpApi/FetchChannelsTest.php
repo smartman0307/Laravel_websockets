@@ -2,13 +2,13 @@
 
 namespace BeyondCode\LaravelWebSockets\Tests\HttpApi;
 
-use BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchChannelsController;
-use BeyondCode\LaravelWebSockets\Tests\Mocks\Connection;
-use BeyondCode\LaravelWebSockets\Tests\TestCase;
+use Pusher\Pusher;
 use GuzzleHttp\Psr7\Request;
 use Illuminate\Http\JsonResponse;
-use Pusher\Pusher;
+use BeyondCode\LaravelWebSockets\Tests\TestCase;
+use BeyondCode\LaravelWebSockets\Tests\Mocks\Connection;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchChannelsController;
 
 class FetchChannelsTest extends TestCase
 {
