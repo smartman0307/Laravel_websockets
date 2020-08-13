@@ -2,13 +2,13 @@
 
 namespace BeyondCode\LaravelWebSockets\Statistics\Logger;
 
+use Clue\React\Buzz\Browser;
+use Ratchet\ConnectionInterface;
+use function GuzzleHttp\Psr7\stream_for;
 use BeyondCode\LaravelWebSockets\Apps\App;
-use BeyondCode\LaravelWebSockets\Statistics\Http\Controllers\WebSocketStatisticsEntriesController;
 use BeyondCode\LaravelWebSockets\Statistics\Statistic;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
-use Clue\React\Buzz\Browser;
-use function GuzzleHttp\Psr7\stream_for;
-use Ratchet\ConnectionInterface;
+use BeyondCode\LaravelWebSockets\Statistics\Http\Controllers\WebSocketStatisticsEntriesController;
 
 class HttpStatisticsLogger implements StatisticsLogger
 {
@@ -65,6 +65,19 @@ class HttpStatisticsLogger implements StatisticsLogger
         return $this->statistics[$appId];
     }
 
+    protected function getUrl(): string
+    {
+        $action = [WebSocketStatisticsEntriesController::class, 'store'];
+
+        $overridenUrl = config('websockets.statistics.base_url_override');
+
+        if ($overridenUrl) {
+            return $overridenUrl.action($action, [], false);
+        }
+
+        return action($action);
+    }
+
     public function save()
     {
         foreach ($this->statistics as $appId => $statistic) {
@@ -79,7 +92,7 @@ class HttpStatisticsLogger implements StatisticsLogger
             $this
                 ->browser
                 ->post(
-                    action([WebSocketStatisticsEntriesController::class, 'store']),
+                    $this->getUrl(),
                     ['Content-Type' => 'application/json'],
                     stream_for(json_encode($postData))
                 );

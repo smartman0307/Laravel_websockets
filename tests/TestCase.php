@@ -2,17 +2,14 @@
 
 namespace BeyondCode\LaravelWebSockets\Tests;
 
-use BeyondCode\LaravelWebSockets\Facades\StatisticsLogger;
-use BeyondCode\LaravelWebSockets\Tests\Mocks\Connection;
-use BeyondCode\LaravelWebSockets\Tests\Mocks\Message;
-use BeyondCode\LaravelWebSockets\Tests\Statistics\Logger\FakeStatisticsLogger;
-use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
-use BeyondCode\LaravelWebSockets\WebSockets\WebSocketHandler;
-use BeyondCode\LaravelWebSockets\WebSocketsServiceProvider;
-use Clue\React\Buzz\Browser;
 use GuzzleHttp\Psr7\Request;
-use Mockery;
 use Ratchet\ConnectionInterface;
+use BeyondCode\LaravelWebSockets\Tests\Mocks\Message;
+use BeyondCode\LaravelWebSockets\Tests\Mocks\Connection;
+use BeyondCode\LaravelWebSockets\Facades\StatisticsLogger;
+use BeyondCode\LaravelWebSockets\WebSocketsServiceProvider;
+use BeyondCode\LaravelWebSockets\WebSockets\WebSocketHandler;
+use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
 
 abstract class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -22,7 +19,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     /** @var \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager */
     protected $channelManager;
 
-    public function setUp(): void
+    public function setUp()
     {
         parent::setUp();
 
@@ -30,10 +27,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
         $this->channelManager = app(ChannelManager::class);
 
-        StatisticsLogger::swap(new FakeStatisticsLogger(
-            $this->channelManager,
-            Mockery::mock(Browser::class)
-        ));
+        StatisticsLogger::fake();
     }
 
     protected function getPackageProviders($app)
@@ -49,7 +43,6 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
                 'id' => 1234,
                 'key' => 'TestKey',
                 'secret' => 'TestSecret',
-                'capacity' => null,
                 'enable_client_messages' => false,
                 'enable_statistics' => true,
             ],

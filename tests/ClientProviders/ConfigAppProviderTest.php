@@ -2,15 +2,15 @@
 
 namespace BeyondCode\LaravelWebSockets\Tests\ClientProviders;
 
-use BeyondCode\LaravelWebSockets\Apps\ConfigAppProvider;
 use BeyondCode\LaravelWebSockets\Tests\TestCase;
+use BeyondCode\LaravelWebSockets\Apps\ConfigAppProvider;
 
 class ConfigAppProviderTest extends TestCase
 {
     /** @var \BeyondCode\LaravelWebSockets\Apps\ConfigAppProvider */
     protected $configAppProvider;
 
-    public function setUp(): void
+    public function setUp()
     {
         parent::setUp();
 

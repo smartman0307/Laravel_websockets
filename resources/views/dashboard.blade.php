@@ -95,8 +95,8 @@
             connected: false,
             chart: null,
             pusher: null,
+            port: 6001,
             app: null,
-            port: {{ $port }},
             apps: {!! json_encode($apps) !!},
             form: {
                 channel: null,
@@ -114,9 +114,8 @@
             connect() {
                 this.pusher = new Pusher(this.app.key, {
                     wsHost: this.app.host === null ? window.location.hostname : this.app.host,
-                    wsPort: this.port === null ? 6001 : this.port,
-                    wssPort: this.port === null ? 6001 : this.port,
-                    wsPath: this.app.path === null ? '' : this.app.path,
+                    wsPort: this.port,
+                    wssPort: this.port,
                     disableStats: true,
                     authEndpoint: '/{{ request()->path() }}/auth',
                     auth: {
@@ -141,15 +140,6 @@
                 this.pusher.connection.bind('disconnected', () => {
                     this.connected = false;
                     this.logs = [];
-                });
-
-                this.pusher.connection.bind('error', event => {
-                    if (event.error.data.code === 4100) {
-                        $('div#status').text("Maximum connection limit exceeded!");
-                        this.connected = false;
-                        this.logs = [];
-                        throw new Error("Over capacity");
-                    }
                 });
 
                 this.subscribeToAllChannels();

@@ -2,34 +2,23 @@
 
 namespace BeyondCode\LaravelWebSockets\HttpApi\Controllers;
 
+use Exception;
+use Pusher\Pusher;
+use Illuminate\Http\Request;
+use GuzzleHttp\Psr7\Response;
+use Ratchet\ConnectionInterface;
+use Illuminate\Http\JsonResponse;
+use GuzzleHttp\Psr7\ServerRequest;
+use Ratchet\Http\HttpServerInterface;
+use Psr\Http\Message\RequestInterface;
 use BeyondCode\LaravelWebSockets\Apps\App;
 use BeyondCode\LaravelWebSockets\QueryParameters;
-use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
-use Exception;
-use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Psr7\ServerRequest;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use Psr\Http\Message\RequestInterface;
-use Pusher\Pusher;
-use Ratchet\ConnectionInterface;
-use Ratchet\Http\HttpServerInterface;
-use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
+use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
 
 abstract class Controller implements HttpServerInterface
 {
-    /** @var string */
-    protected $requestBuffer = '';
-
-    /** @var RequestInterface */
-    protected $request;
-
-    /** @var int */
-    protected $contentLength;
-
     /** @var \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager */
     protected $channelManager;
 
@@ -40,51 +29,28 @@ abstract class Controller implements HttpServerInterface
 
     public function onOpen(ConnectionInterface $connection, RequestInterface $request = null)
     {
-        $this->request = $request;
+        $serverRequest = (new ServerRequest(
+            $request->getMethod(),
+            $request->getUri(),
+            $request->getHeaders(),
+            $request->getBody(),
+            $request->getProtocolVersion()
+        ))->withQueryParams(QueryParameters::create($request)->all());
 
-        $this->contentLength = $this->findContentLength($request->getHeaders());
+        $laravelRequest = Request::createFromBase((new HttpFoundationFactory)->createRequest($serverRequest));
 
-        $this->requestBuffer = (string) $request->getBody();
+        $this
+            ->ensureValidAppId($laravelRequest->appId)
+            ->ensureValidSignature($laravelRequest);
 
-        $this->checkContentLength($connection);
-    }
+        $response = $this($laravelRequest);
 
-    protected function findContentLength(array $headers): int
-    {
-        return Collection::make($headers)->first(function ($values, $header) {
-            return strtolower($header) === 'content-length';
-        })[0] ?? 0;
+        $connection->send(JsonResponse::create($response));
+        $connection->close();
     }
 
     public function onMessage(ConnectionInterface $from, $msg)
     {
-        $this->requestBuffer .= $msg;
-
-        $this->checkContentLength($from);
-    }
-
-    protected function checkContentLength(ConnectionInterface $connection)
-    {
-        if (strlen($this->requestBuffer) === $this->contentLength) {
-            $serverRequest = (new ServerRequest(
-                $this->request->getMethod(),
-                $this->request->getUri(),
-                $this->request->getHeaders(),
-                $this->requestBuffer,
-                $this->request->getProtocolVersion()
-            ))->withQueryParams(QueryParameters::create($this->request)->all());
-
-            $laravelRequest = Request::createFromBase((new HttpFoundationFactory)->createRequest($serverRequest));
-
-            $this
-                ->ensureValidAppId($laravelRequest->appId)
-                ->ensureValidSignature($laravelRequest);
-
-            $response = $this($laravelRequest);
-
-            $connection->send(JsonResponse::create($response));
-            $connection->close();
-        }
     }
 
     public function onClose(ConnectionInterface $connection)
@@ -124,7 +90,7 @@ abstract class Controller implements HttpServerInterface
          *
          * The `appId`, `appKey` & `channelName` parameters are actually route paramaters and are never supplied by the client.
          */
-        $params = Arr::except($request->query(), ['auth_signature', 'body_md5', 'appId', 'appKey', 'channelName']);
+        $params = array_except($request->query(), ['auth_signature', 'body_md5', 'appId', 'appKey', 'channelName']);
 
         if ($request->getContent() !== '') {
             $params['body_md5'] = md5($request->getContent());

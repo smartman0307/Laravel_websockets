@@ -2,13 +2,11 @@
 
 namespace BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManagers;
 
+use Ratchet\ConnectionInterface;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\Channel;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
-use BeyondCode\LaravelWebSockets\WebSockets\Channels\PresenceChannel;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\PrivateChannel;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Ratchet\ConnectionInterface;
+use BeyondCode\LaravelWebSockets\WebSockets\Channels\PresenceChannel;
 
 class ArrayChannelManager implements ChannelManager
 {
@@ -36,11 +34,11 @@ class ArrayChannelManager implements ChannelManager
 
     protected function determineChannelClass(string $channelName): string
     {
-        if (Str::startsWith($channelName, 'private-')) {
+        if (starts_with($channelName, 'private-')) {
             return PrivateChannel::class;
         }
 
-        if (Str::startsWith($channelName, 'presence-')) {
+        if (starts_with($channelName, 'presence-')) {
             return PresenceChannel::class;
         }
 
@@ -55,11 +53,9 @@ class ArrayChannelManager implements ChannelManager
     public function getConnectionCount(string $appId): int
     {
         return collect($this->getChannels($appId))
-            ->flatMap(function (Channel $channel) {
-                return collect($channel->getSubscribedConnections())->pluck('socketId');
-            })
-            ->unique()
-            ->count();
+            ->sum(function ($channel) {
+                return count($channel->getSubscribedConnections());
+            });
     }
 
     public function removeFromAllChannels(ConnectionInterface $connection)
@@ -71,18 +67,18 @@ class ArrayChannelManager implements ChannelManager
         /*
          * Remove the connection from all channels.
          */
-        collect(Arr::get($this->channels, $connection->app->id, []))->each->unsubscribe($connection);
+        collect(array_get($this->channels, $connection->app->id, []))->each->unsubscribe($connection);
 
         /*
          * Unset all channels that have no connections so we don't leak memory.
          */
-        collect(Arr::get($this->channels, $connection->app->id, []))
+        collect(array_get($this->channels, $connection->app->id, []))
             ->reject->hasConnections()
                     ->each(function (Channel $channel, string $channelName) use ($connection) {
                         unset($this->channels[$connection->app->id][$channelName]);
                     });
 
-        if (count(Arr::get($this->channels, $connection->app->id, [])) === 0) {
+        if (count(array_get($this->channels, $connection->app->id, [])) === 0) {
             unset($this->channels[$connection->app->id]);
         }
     }

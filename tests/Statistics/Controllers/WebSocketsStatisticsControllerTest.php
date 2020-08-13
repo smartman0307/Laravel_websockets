@@ -2,9 +2,9 @@
 
 namespace BeyondCode\LaravelWebSockets\Tests\Statistics\Controllers;
 
-use BeyondCode\LaravelWebSockets\Statistics\Http\Controllers\WebSocketStatisticsEntriesController;
-use BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry;
 use BeyondCode\LaravelWebSockets\Tests\TestCase;
+use BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry;
+use BeyondCode\LaravelWebSockets\Statistics\Http\Controllers\WebSocketStatisticsEntriesController;
 
 class WebSocketsStatisticsControllerTest extends TestCase
 {
@@ -22,7 +22,7 @@ class WebSocketsStatisticsControllerTest extends TestCase
 
         $this->assertCount(1, $entries);
 
-        $this->assertArrayHasKey('app_id', $entries->first()->attributesToArray());
+        $this->assertArraySubset($this->payload(), $entries->first()->attributesToArray());
     }
 
     protected function payload(): array

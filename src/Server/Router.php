@@ -2,29 +2,26 @@
 
 namespace BeyondCode\LaravelWebSockets\Server;
 
-use BeyondCode\LaravelWebSockets\Exceptions\InvalidWebSocketController;
-use BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchChannelController;
-use BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchChannelsController;
-use BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchUsersController;
-use BeyondCode\LaravelWebSockets\HttpApi\Controllers\TriggerEventController;
-use BeyondCode\LaravelWebSockets\Server\Logger\WebsocketsLogger;
-use BeyondCode\LaravelWebSockets\WebSockets\WebSocketHandler;
-use Illuminate\Support\Collection;
-use Ratchet\WebSocket\MessageComponentInterface;
 use Ratchet\WebSocket\WsServer;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
+use Ratchet\WebSocket\MessageComponentInterface;
+use BeyondCode\LaravelWebSockets\WebSockets\WebSocketHandler;
+use BeyondCode\LaravelWebSockets\Server\Logger\WebsocketsLogger;
+use BeyondCode\LaravelWebSockets\Exceptions\InvalidWebSocketController;
+use BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchUsersController;
+use BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchChannelController;
+use BeyondCode\LaravelWebSockets\HttpApi\Controllers\TriggerEventController;
+use BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchChannelsController;
 
 class Router
 {
     /** @var \Symfony\Component\Routing\RouteCollection */
     protected $routes;
-    protected $customRoutes;
 
     public function __construct()
     {
         $this->routes = new RouteCollection;
-        $this->customRoutes = new Collection();
     }
 
     public function getRoutes(): RouteCollection
@@ -40,13 +37,6 @@ class Router
         $this->get('/apps/{appId}/channels', FetchChannelsController::class);
         $this->get('/apps/{appId}/channels/{channelName}', FetchChannelController::class);
         $this->get('/apps/{appId}/channels/{channelName}/users', FetchUsersController::class);
-    }
-
-    public function customRoutes()
-    {
-        $this->customRoutes->each(function ($action, $uri) {
-            $this->get($uri, $action);
-        });
     }
 
     public function get(string $uri, $action)
@@ -80,7 +70,7 @@ class Router
             throw InvalidWebSocketController::withController($action);
         }
 
-        $this->customRoutes->put($uri, $action);
+        $this->get($uri, $action);
     }
 
     public function addRoute(string $method, string $uri, $action)
