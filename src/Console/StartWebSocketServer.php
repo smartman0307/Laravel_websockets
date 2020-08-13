@@ -4,7 +4,6 @@ namespace BeyondCode\LaravelWebSockets\Console;
 
 use BeyondCode\LaravelWebSockets\Facades\StatisticsLogger;
 use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
-use BeyondCode\LaravelWebSockets\PubSub\ReplicationInterface;
 use BeyondCode\LaravelWebSockets\Server\Logger\ConnectionLogger;
 use BeyondCode\LaravelWebSockets\Server\Logger\HttpLogger;
 use BeyondCode\LaravelWebSockets\Server\Logger\WebsocketsLogger;
@@ -23,12 +22,7 @@ use React\Socket\Connector;
 
 class StartWebSocketServer extends Command
 {
-    protected $signature = 'websockets:serve
-        {--host=0.0.0.0}
-        {--port=6001}
-        {--debug : Forces the loggers to be enabled and thereby overriding the APP_DEBUG setting.}
-        {--test : Prepare the server, but do not start it.}
-    ';
+    protected $signature = 'websockets:serve {--host=0.0.0.0} {--port=6001} {--debug : Forces the loggers to be enabled and thereby overriding the app.debug config setting } ';
 
     protected $description = 'Start the Laravel WebSocket Server';
 
@@ -55,7 +49,6 @@ class StartWebSocketServer extends Command
             ->configureRestartTimer()
             ->registerEchoRoutes()
             ->registerCustomRoutes()
-            ->configurePubSubReplication()
             ->startWebSocketServer();
     }
 
@@ -63,13 +56,16 @@ class StartWebSocketServer extends Command
     {
         $connector = new Connector($this->loop, [
             'dns' => $this->getDnsResolver(),
-            'tls' => config('websockets.statistics.tls'),
+            'tls' => [
+                'verify_peer' => config('app.env') === 'production',
+                'verify_peer_name' => config('app.env') === 'production',
+            ],
         ]);
 
         $browser = new Browser($this->loop, $connector);
 
-        $this->laravel->singleton(StatisticsLoggerInterface::class, function () use ($browser) {
-            $class = config('websockets.statistics.logger', \BeyondCode\LaravelWebSockets\Statistics\Logger::class);
+        app()->singleton(StatisticsLoggerInterface::class, function () use ($browser) {
+            $class = config('websockets.statistics.logger', \BeyondCode\LaravelWebSockets\Statistics\Logger\HttpStatisticsLogger::class);
 
             return new $class(app(ChannelManager::class), $browser);
         });
@@ -83,7 +79,7 @@ class StartWebSocketServer extends Command
 
     protected function configureHttpLogger()
     {
-        $this->laravel->singleton(HttpLogger::class, function () {
+        app()->singleton(HttpLogger::class, function () {
             return (new HttpLogger($this->output))
                 ->enable($this->option('debug') ?: config('app.debug'))
                 ->verbose($this->output->isVerbose());
@@ -94,7 +90,7 @@ class StartWebSocketServer extends Command
 
     protected function configureMessageLogger()
     {
-        $this->laravel->singleton(WebsocketsLogger::class, function () {
+        app()->singleton(WebsocketsLogger::class, function () {
             return (new WebsocketsLogger($this->output))
                 ->enable($this->option('debug') ?: config('app.debug'))
                 ->verbose($this->output->isVerbose());
@@ -105,7 +101,7 @@ class StartWebSocketServer extends Command
 
     protected function configureConnectionLogger()
     {
-        $this->laravel->bind(ConnectionLogger::class, function () {
+        app()->bind(ConnectionLogger::class, function () {
             return (new ConnectionLogger($this->output))
                 ->enable(config('app.debug'))
                 ->verbose($this->output->isVerbose());
@@ -147,25 +143,15 @@ class StartWebSocketServer extends Command
 
         $routes = WebSocketsRouter::getRoutes();
 
-        $server = (new WebSocketServerFactory())
+        /* 🛰 Start the server 🛰  */
+        (new WebSocketServerFactory())
             ->setLoop($this->loop)
             ->useRoutes($routes)
             ->setHost($this->option('host'))
             ->setPort($this->option('port'))
             ->setConsoleOutput($this->output)
-            ->createServer();
-
-        if (! $this->option('test')) {
-            /* 🛰 Start the server 🛰  */
-            $server->run();
-        }
-    }
-
-    protected function configurePubSubReplication()
-    {
-        $this->laravel->get(ReplicationInterface::class)->boot($this->loop);
-
-        return $this;
+            ->createServer()
+            ->run();
     }
 
     protected function getDnsResolver(): ResolverInterface
