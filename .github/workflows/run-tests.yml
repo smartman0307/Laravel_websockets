@@ -10,21 +10,25 @@ jobs:
             matrix:
                 os: [ubuntu-latest, windows-latest]
                 php: [7.4, 7.3, 7.2]
-                laravel: [5.8.*, 6.*, 7.*]
+                laravel: [6.*, 7.*]
+                redis: [5, 6]
                 dependency-version: [prefer-lowest, prefer-stable]
                 include:
                     -   laravel: 7.*
                         testbench: 5.*
                     -   laravel: 6.*
                         testbench: 4.*
-                    -   laravel: 5.8.*
-                        testbench: 3.8.*
 
-        name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
+        name: P${{ matrix.php }} - L${{ matrix.laravel }} - R${{ matrix.redis }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
 
         steps:
             -   name: Checkout code
                 uses: actions/checkout@v1
+
+            -   name: Setup Redis ${{ matrix.redis }}
+                uses: supercharge/redis-github-action@1.1.0
+                with:
+                    redis-version: ${{ matrix.redis }}
 
             -   name: Cache dependencies
                 uses: actions/cache@v1
@@ -44,9 +48,14 @@ jobs:
                     composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
                     composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-suggest
 
-            -   name: Execute tests
-                run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
+            -   name: Execute tests with Local driver
+                run: REPLICATION_DRIVER=local phpunit --coverage-text --coverage-clover=coverage_local.xml
+
+            -   name: Execute tests with Redis driver
+                run: REPLICATION_DRIVER=redis phpunit --coverage-text --coverage-clover=coverage_redis.xml
+                if: ${{ matrix.os == 'ubuntu-latest' }}
 
             -   uses: codecov/codecov-action@v1
                 with:
                     fail_ci_if_error: false
+                    file: '*.xml'

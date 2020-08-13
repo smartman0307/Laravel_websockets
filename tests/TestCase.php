@@ -46,14 +46,27 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         $app['config']->set('websockets.apps', [
             [
                 'name' => 'Test App',
-                'id' => 1234,
+                'id' => '1234',
                 'key' => 'TestKey',
                 'secret' => 'TestSecret',
+                'host' => 'localhost',
                 'capacity' => null,
                 'enable_client_messages' => false,
                 'enable_statistics' => true,
             ],
         ]);
+
+        $app['config']->set('database.redis.default', [
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'password' => env('REDIS_PASSWORD', null),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_DB', '0'),
+        ]);
+
+        $app['config']->set(
+            'websockets.replication.driver',
+            getenv('REPLICATION_DRIVER') ?: 'local'
+        );
 
         include_once __DIR__.'/../database/migrations/create_websockets_statistics_entries_table.php.stub';
 
