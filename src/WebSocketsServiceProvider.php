@@ -2,21 +2,28 @@
 
 namespace BeyondCode\LaravelWebSockets;
 
-use BeyondCode\LaravelWebSockets\Apps\AppProvider;
+use BeyondCode\LaravelWebSockets\Apps\AppManager;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\AuthenticateDashboard;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\DashboardApiController;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\SendMessage;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\ShowDashboard;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Middleware\Authorize as AuthorizeDashboard;
+use BeyondCode\LaravelWebSockets\PubSub\Broadcasters\RedisPusherBroadcaster;
+use BeyondCode\LaravelWebSockets\PubSub\Drivers\LocalClient;
+use BeyondCode\LaravelWebSockets\PubSub\Drivers\RedisClient;
+use BeyondCode\LaravelWebSockets\PubSub\ReplicationInterface;
 use BeyondCode\LaravelWebSockets\Server\Router;
 use BeyondCode\LaravelWebSockets\Statistics\Http\Controllers\WebSocketStatisticsEntriesController;
 use BeyondCode\LaravelWebSockets\Statistics\Http\Middleware\Authorize as AuthorizeStatistics;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManagers\ArrayChannelManager;
+use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Psr\Log\LoggerInterface;
+use Pusher\Pusher;
 
 class WebSocketsServiceProvider extends ServiceProvider
 {
@@ -43,6 +50,41 @@ class WebSocketsServiceProvider extends ServiceProvider
             Console\CleanStatistics::class,
             Console\RestartWebSocketServer::class,
         ]);
+
+        $this->configurePubSub();
+    }
+
+    protected function configurePubSub()
+    {
+        if (config('websockets.replication.enabled') !== true || config('websockets.replication.driver') !== 'redis') {
+            $this->app->singleton(ReplicationInterface::class, function () {
+                return new LocalClient();
+            });
+
+            return;
+        }
+
+        $this->app->singleton(ReplicationInterface::class, function () {
+            return (new RedisClient())->boot($this->loop);
+        });
+
+        $this->app->get(BroadcastManager::class)->extend('redis-pusher', function ($app, array $config) {
+            $pusher = new Pusher(
+                $config['key'], $config['secret'],
+                $config['app_id'], $config['options'] ?? []
+            );
+
+            if ($config['log'] ?? false) {
+                $pusher->setLogger($this->app->make(LoggerInterface::class));
+            }
+
+            return new RedisPusherBroadcaster(
+                $pusher,
+                $config['app_id'],
+                $this->app->make('redis'),
+                $config['connection'] ?? null
+            );
+        });
     }
 
     public function register()
@@ -54,21 +96,22 @@ class WebSocketsServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(ChannelManager::class, function () {
-            return config('websockets.channel_manager') !== null && class_exists(config('websockets.channel_manager'))
-                ? app(config('websockets.channel_manager')) : new ArrayChannelManager();
+            $channelManager = config('websockets.managers.channel', ArrayChannelManager::class);
+
+            return new $channelManager;
         });
 
-        $this->app->singleton(AppProvider::class, function () {
-            return app(config('websockets.app_provider'));
+        $this->app->singleton(AppManager::class, function () {
+            return $this->app->make(config('websockets.managers.app'));
         });
     }
 
     protected function registerRoutes()
     {
-        Route::prefix(config('websockets.path'))->group(function () {
-            Route::middleware(config('websockets.middleware', [AuthorizeDashboard::class]))->group(function () {
+        Route::prefix(config('websockets.dashboard.path'))->group(function () {
+            Route::middleware(config('websockets.dashboard.middleware', [AuthorizeDashboard::class]))->group(function () {
                 Route::get('/', ShowDashboard::class);
-                Route::get('/api/{appId}/statistics', [DashboardApiController::class,  'getStatistics']);
+                Route::get('/api/{appId}/statistics', [DashboardApiController::class, 'getStatistics']);
                 Route::post('auth', AuthenticateDashboard::class);
                 Route::post('event', SendMessage::class);
             });
@@ -84,7 +127,7 @@ class WebSocketsServiceProvider extends ServiceProvider
     protected function registerDashboardGate()
     {
         Gate::define('viewWebSocketsDashboard', function ($user = null) {
-            return app()->environment('local');
+            return $this->app->environment('local');
         });
 
         return $this;
