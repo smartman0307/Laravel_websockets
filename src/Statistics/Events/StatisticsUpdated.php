@@ -2,11 +2,12 @@
 
 namespace BeyondCode\LaravelWebSockets\Statistics\Events;
 
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use BeyondCode\LaravelWebSockets\Dashboard\DashboardLogger;
 use BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Str;
 
 class StatisticsUpdated implements ShouldBroadcast
 {
@@ -33,7 +34,7 @@ class StatisticsUpdated implements ShouldBroadcast
 
     public function broadcastOn()
     {
-        $channelName = str_after(DashboardLogger::LOG_CHANNEL_PREFIX.'statistics', 'private-');
+        $channelName = Str::after(DashboardLogger::LOG_CHANNEL_PREFIX.'statistics', 'private-');
 
         return new PrivateChannel($channelName);
     }

@@ -2,18 +2,19 @@
 
 namespace BeyondCode\LaravelWebSockets\WebSockets;
 
-use Exception;
-use Ratchet\ConnectionInterface;
 use BeyondCode\LaravelWebSockets\Apps\App;
-use Ratchet\RFC6455\Messaging\MessageInterface;
-use Ratchet\WebSocket\MessageComponentInterface;
-use BeyondCode\LaravelWebSockets\QueryParameters;
-use BeyondCode\LaravelWebSockets\Facades\StatisticsLogger;
 use BeyondCode\LaravelWebSockets\Dashboard\DashboardLogger;
+use BeyondCode\LaravelWebSockets\Facades\StatisticsLogger;
+use BeyondCode\LaravelWebSockets\QueryParameters;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
+use BeyondCode\LaravelWebSockets\WebSockets\Exceptions\ConnectionsOverCapacity;
 use BeyondCode\LaravelWebSockets\WebSockets\Exceptions\UnknownAppKey;
 use BeyondCode\LaravelWebSockets\WebSockets\Exceptions\WebSocketException;
 use BeyondCode\LaravelWebSockets\WebSockets\Messages\PusherMessageFactory;
+use Exception;
+use Ratchet\ConnectionInterface;
+use Ratchet\RFC6455\Messaging\MessageInterface;
+use Ratchet\WebSocket\MessageComponentInterface;
 
 class WebSocketHandler implements MessageComponentInterface
 {
@@ -29,6 +30,7 @@ class WebSocketHandler implements MessageComponentInterface
     {
         $this
             ->verifyAppKey($connection)
+            ->limitConcurrentConnections($connection)
             ->generateSocketId($connection)
             ->establishConnection($connection);
     }
@@ -69,6 +71,18 @@ class WebSocketHandler implements MessageComponentInterface
         }
 
         $connection->app = $app;
+
+        return $this;
+    }
+
+    protected function limitConcurrentConnections(ConnectionInterface $connection)
+    {
+        if (! is_null($capacity = $connection->app->capacity)) {
+            $connectionsCount = $this->channelManager->getConnectionCount($connection->app->id);
+            if ($connectionsCount >= $capacity) {
+                throw new ConnectionsOverCapacity();
+            }
+        }
 
         return $this;
     }
