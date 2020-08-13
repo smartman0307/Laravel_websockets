@@ -13,7 +13,6 @@ use BeyondCode\LaravelWebSockets\Statistics\Http\Controllers\WebSocketStatistics
 use BeyondCode\LaravelWebSockets\Statistics\Http\Middleware\Authorize as AuthorizeStatistics;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManagers\ArrayChannelManager;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -27,30 +26,23 @@ class WebSocketsServiceProvider extends ServiceProvider
             __DIR__.'/../config/websockets.php' => base_path('config/websockets.php'),
         ], 'config');
 
-        try {
-            if (! Schema::hasTable('websockets_statistics_entries')) {
-                $this->publishes([
-                    __DIR__.'/../database/migrations/create_websockets_statistics_entries_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_websockets_statistics_entries_table.php'),
-                ], 'migrations');
-            }
+        if (! Schema::hasTable('websockets_statistics_entries')) {
+            $this->publishes([
+                __DIR__.'/../database/migrations/create_websockets_statistics_entries_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_websockets_statistics_entries_table.php'),
+            ], 'migrations');
+        }
 
-            $this
+        $this
             ->registerRoutes()
             ->registerDashboardGate();
 
-            $this->loadViewsFrom(__DIR__.'/../resources/views/', 'websockets');
+        $this->loadViewsFrom(__DIR__.'/../resources/views/', 'websockets');
 
-            $this->commands([
-                Console\StartWebSocketServer::class,
-                Console\CleanStatistics::class,
-                Console\RestartWebSocketServer::class,
-            ]);
-        } catch (QueryException $e) {
-            // Exception raised by composer update
-            // Usually happens when doing on CI where no DB exists at start
-            // Either way if DB connection not obtained
-            // Catching and doing nothing is ignore for composer update
-        }
+        $this->commands([
+            Console\StartWebSocketServer::class,
+            Console\CleanStatistics::class,
+            Console\RestartWebSocketServer::class,
+        ]);
     }
 
     public function register()
