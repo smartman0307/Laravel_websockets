@@ -81,12 +81,6 @@ return [
          */
         'model' => \BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry::class,
 
-        /**
-         * The Statistics Logger will, by default, handle the incoming statistics, store them
-         * and then release them into the database on each interval defined below.
-         */
-        'logger' => \BeyondCode\LaravelWebSockets\Statistics\Logger::class,
-
         /*
          * Here you can specify the interval in seconds at which statistics should be logged.
          */
@@ -128,6 +122,19 @@ return [
          * Passphrase for your local_cert file.
          */
         'passphrase' => env('LARAVEL_WEBSOCKETS_SSL_PASSPHRASE', null),
+    ],
+
+    /*
+     * You can enable replication to publish and subscribe to messages across the driver
+     */
+    'replication' => [
+        'enabled' => false,
+
+        'driver' => 'redis',
+
+        'redis' => [
+            'connection' => 'default',
+        ],
     ],
 
     /*
