@@ -4,7 +4,7 @@ namespace BeyondCode\LaravelWebSockets\Apps;
 
 use Illuminate\Support\Collection;
 
-class ConfigAppManager implements AppManager
+class ConfigAppProvider implements AppProvider
 {
     /** @var Collection */
     protected $apps;
@@ -14,7 +14,7 @@ class ConfigAppManager implements AppManager
         $this->apps = collect(config('websockets.apps'));
     }
 
-    /**  @return array[\BeyondCode\LaravelWebSockets\Apps\App] */
+    /**  @return array[\BeyondCode\LaravelWebSockets\AppProviders\App] */
     public function all(): array
     {
         return $this->apps
