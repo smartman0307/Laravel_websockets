@@ -35,17 +35,17 @@ class App
 
     public static function findById($appId)
     {
-        return app(AppManager::class)->findById($appId);
+        return app(AppProvider::class)->findById($appId);
     }
 
     public static function findByKey(string $appKey): ?self
     {
-        return app(AppManager::class)->findByKey($appKey);
+        return app(AppProvider::class)->findByKey($appKey);
     }
 
     public static function findBySecret(string $appSecret): ?self
     {
-        return app(AppManager::class)->findBySecret($appSecret);
+        return app(AppProvider::class)->findBySecret($appSecret);
     }
 
     public function __construct($appId, string $appKey, string $appSecret)
