@@ -8,6 +8,8 @@ class CreateWebSocketsStatisticsEntriesTable extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * @return void
      */
     public function up()
     {
@@ -23,6 +25,8 @@ class CreateWebSocketsStatisticsEntriesTable extends Migration
 
     /**
      * Reverse the migrations.
+     *
+     * @return void
      */
     public function down()
     {
