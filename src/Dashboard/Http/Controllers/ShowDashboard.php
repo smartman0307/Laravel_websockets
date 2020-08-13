@@ -2,12 +2,12 @@
 
 namespace BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers;
 
-use BeyondCode\LaravelWebSockets\Apps\AppManager;
+use BeyondCode\LaravelWebSockets\Apps\AppProvider;
 use Illuminate\Http\Request;
 
 class ShowDashboard
 {
-    public function __invoke(Request $request, AppManager $apps)
+    public function __invoke(Request $request, AppProvider $apps)
     {
         return view('websockets::dashboard', [
             'apps' => $apps->all(),

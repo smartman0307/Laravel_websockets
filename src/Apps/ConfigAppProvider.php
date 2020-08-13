@@ -4,7 +4,7 @@ namespace BeyondCode\LaravelWebSockets\Apps;
 
 use Illuminate\Support\Collection;
 
-class ConfigAppManager implements AppManager
+class ConfigAppProvider implements AppProvider
 {
     /** @var Collection */
     protected $apps;
@@ -14,12 +14,12 @@ class ConfigAppManager implements AppManager
         $this->apps = collect(config('websockets.apps'));
     }
 
-    /**  @return array[\BeyondCode\LaravelWebSockets\Apps\App] */
+    /**  @return array[\BeyondCode\LaravelWebSockets\AppProviders\App] */
     public function all(): array
     {
         return $this->apps
             ->map(function (array $appAttributes) {
-                return $this->instantiate($appAttributes);
+                return $this->instanciate($appAttributes);
             })
             ->toArray();
     }
@@ -30,7 +30,7 @@ class ConfigAppManager implements AppManager
             ->apps
             ->firstWhere('id', $appId);
 
-        return $this->instantiate($appAttributes);
+        return $this->instanciate($appAttributes);
     }
 
     public function findByKey(string $appKey): ?App
@@ -39,7 +39,7 @@ class ConfigAppManager implements AppManager
             ->apps
             ->firstWhere('key', $appKey);
 
-        return $this->instantiate($appAttributes);
+        return $this->instanciate($appAttributes);
     }
 
     public function findBySecret(string $appSecret): ?App
@@ -48,10 +48,10 @@ class ConfigAppManager implements AppManager
             ->apps
             ->firstWhere('secret', $appSecret);
 
-        return $this->instantiate($appAttributes);
+        return $this->instanciate($appAttributes);
     }
 
-    protected function instantiate(?array $appAttributes): ?App
+    protected function instanciate(?array $appAttributes): ?App
     {
         if (! $appAttributes) {
             return null;

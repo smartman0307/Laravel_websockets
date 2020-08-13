@@ -2,7 +2,7 @@
 
 namespace BeyondCode\LaravelWebSockets\Apps;
 
-interface AppManager
+interface AppProvider
 {
     /**  @return array[BeyondCode\LaravelWebSockets\AppProviders\App] */
     public function all(): array;
