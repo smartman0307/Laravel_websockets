@@ -2,9 +2,7 @@
 
 namespace BeyondCode\LaravelWebSockets\Tests\Channels;
 
-use BeyondCode\LaravelWebSockets\Tests\Mocks\Message;
 use BeyondCode\LaravelWebSockets\Tests\TestCase;
-use BeyondCode\LaravelWebSockets\WebSockets\Exceptions\InvalidSignature;
 
 class PrivateChannelReplicationTest extends TestCase
 {
@@ -18,49 +16,10 @@ class PrivateChannelReplicationTest extends TestCase
         $this->runOnlyOnRedisReplication();
     }
 
-    /** @test */
-    public function replication_clients_need_valid_auth_signatures_to_join_private_channels()
+    public function test_not_implemented()
     {
-        $this->expectException(InvalidSignature::class);
-
-        $connection = $this->getWebSocketConnection();
-
-        $message = new Message(json_encode([
-            'event' => 'pusher:subscribe',
-            'data' => [
-                'auth' => 'invalid',
-                'channel' => 'private-channel',
-            ],
-        ]));
-
-        $this->pusherServer->onOpen($connection);
-
-        $this->pusherServer->onMessage($connection, $message);
-    }
-
-    /** @test */
-    public function replication_clients_with_valid_auth_signatures_can_join_private_channels()
-    {
-        $connection = $this->getWebSocketConnection();
-
-        $this->pusherServer->onOpen($connection);
-
-        $signature = "{$connection->socketId}:private-channel";
-
-        $hashedAppSecret = hash_hmac('sha256', $signature, $connection->app->secret);
-
-        $message = new Message(json_encode([
-            'event' => 'pusher:subscribe',
-            'data' => [
-                'auth' => "{$connection->app->key}:{$hashedAppSecret}",
-                'channel' => 'private-channel',
-            ],
-        ]));
-
-        $this->pusherServer->onMessage($connection, $message);
-
-        $connection->assertSentEvent('pusher_internal:subscription_succeeded', [
-            'channel' => 'private-channel',
-        ]);
+        $this->markTestIncomplete(
+            'Not yet implemented tests.'
+        );
     }
 }
