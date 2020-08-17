@@ -8,6 +8,7 @@ use BeyondCode\LaravelWebSockets\Tests\TestCase;
 use GuzzleHttp\Psr7\Request;
 use Illuminate\Http\JsonResponse;
 use Pusher\Pusher;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class FetchChannelsReplicationTest extends TestCase
 {
@@ -54,6 +55,7 @@ class FetchChannelsReplicationTest extends TestCase
             ->assertCalled('multi')
             ->assertCalledWithArgs('hlen', ['1234:presence-channel'])
             ->assertCalled('exec');
+
     }
 
     /** @test */

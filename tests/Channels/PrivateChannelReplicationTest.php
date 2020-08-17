@@ -6,6 +6,7 @@ use BeyondCode\LaravelWebSockets\Tests\Mocks\Message;
 use BeyondCode\LaravelWebSockets\Tests\TestCase;
 use BeyondCode\LaravelWebSockets\WebSockets\Exceptions\InvalidSignature;
 
+
 class PrivateChannelReplicationTest extends TestCase
 {
     /**
