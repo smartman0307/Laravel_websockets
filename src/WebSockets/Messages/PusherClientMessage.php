@@ -10,46 +10,24 @@ use stdClass;
 
 class PusherClientMessage implements PusherMessage
 {
-    /**
-     * The payload to send.
-     *
-     * @var \stdClass
-     */
+    /** \stdClass */
     protected $payload;
 
-    /**
-     * The socket connection.
-     *
-     * @var \Ratchet\ConnectionInterface
-     */
+    /** @var \Ratchet\ConnectionInterface */
     protected $connection;
 
-    /**
-     * The channel manager.
-     *
-     * @var ChannelManager
-     */
+    /** @var \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager */
     protected $channelManager;
 
-    /**
-     * Create a new instance.
-     *
-     * @param  \stdClass  $payload
-     * @param  \Ratchet\ConnectionInterface  $connection
-     * @param  ChannelManager  $channelManager
-     */
     public function __construct(stdClass $payload, ConnectionInterface $connection, ChannelManager $channelManager)
     {
         $this->payload = $payload;
+
         $this->connection = $connection;
+
         $this->channelManager = $channelManager;
     }
 
-    /**
-     * Respond to the message construction.
-     *
-     * @return void
-     */
     public function respond()
     {
         if (! Str::startsWith($this->payload->event, 'client-')) {

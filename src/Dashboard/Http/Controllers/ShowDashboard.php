@@ -8,13 +8,6 @@ use Illuminate\Http\Request;
 
 class ShowDashboard
 {
-    /**
-     * Show the dashboard.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \BeyondCode\LaravelWebSockets\Apps\AppManager  $apps
-     * @return void
-     */
     public function __invoke(Request $request, AppManager $apps)
     {
         return view('websockets::dashboard', [

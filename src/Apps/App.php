@@ -36,49 +36,22 @@ class App
     /** @var array */
     public $allowedOrigins = [];
 
-    /**
-     * Find the app by id.
-     *
-     * @param  mixed  $appId
-     * @return \BeyondCode\LaravelWebSockets\Apps\App|null
-     */
     public static function findById($appId)
     {
         return app(AppManager::class)->findById($appId);
     }
 
-    /**
-     * Find the app by app key.
-     *
-     * @param  mixed  $appId
-     * @return \BeyondCode\LaravelWebSockets\Apps\App|null
-     */
-    public static function findByKey($appKey): ?self
+    public static function findByKey(string $appKey): ?self
     {
         return app(AppManager::class)->findByKey($appKey);
     }
 
-    /**
-     * Find the app by app secret.
-     *
-     * @param  mixed  $appId
-     * @return \BeyondCode\LaravelWebSockets\Apps\App|null
-     */
-    public static function findBySecret($appSecret): ?self
+    public static function findBySecret(string $appSecret): ?self
     {
         return app(AppManager::class)->findBySecret($appSecret);
     }
 
-    /**
-     * Initialize the Web Socket app instance.
-     *
-     * @param  mixed  $appId
-     * @param  mixed  $key
-     * @param  mixed  $secret
-     * @return void
-     * @throws \BeyondCode\LaravelWebSockets\Exceptions\InvalidApp
-     */
-    public function __construct($appId, $appKey, $appSecret)
+    public function __construct($appId, string $appKey, string $appSecret)
     {
         if ($appKey === '') {
             throw InvalidApp::valueIsRequired('appKey', $appId);
@@ -89,16 +62,12 @@ class App
         }
 
         $this->id = $appId;
+
         $this->key = $appKey;
+
         $this->secret = $appSecret;
     }
 
-    /**
-     * Set the name of the app.
-     *
-     * @param  string  $appName
-     * @return $this
-     */
     public function setName(string $appName)
     {
         $this->name = $appName;
@@ -106,12 +75,6 @@ class App
         return $this;
     }
 
-    /**
-     * Set the app host.
-     *
-     * @param  string  $host
-     * @return $this
-     */
     public function setHost(string $host)
     {
         $this->host = $host;
@@ -119,12 +82,6 @@ class App
         return $this;
     }
 
-    /**
-     * Set path for the app.
-     *
-     * @param  string  $path
-     * @return $this
-     */
     public function setPath(string $path)
     {
         $this->path = $path;
@@ -132,12 +89,6 @@ class App
         return $this;
     }
 
-    /**
-     * Enable client messages.
-     *
-     * @param  bool  $enabled
-     * @return $this
-     */
     public function enableClientMessages(bool $enabled = true)
     {
         $this->clientMessagesEnabled = $enabled;
@@ -145,12 +96,6 @@ class App
         return $this;
     }
 
-    /**
-     * Set the maximum capacity for the app.
-     *
-     * @param  int|null  $capacity
-     * @return $this
-     */
     public function setCapacity(?int $capacity)
     {
         $this->capacity = $capacity;
@@ -158,12 +103,6 @@ class App
         return $this;
     }
 
-    /**
-     * Enable statistics for the app.
-     *
-     * @param  bool  $enabled
-     * @return $this
-     */
     public function enableStatistics(bool $enabled = true)
     {
         $this->statisticsEnabled = $enabled;
@@ -171,12 +110,6 @@ class App
         return $this;
     }
 
-    /**
-     * Add whitelisted origins.
-     *
-     * @param  array  $allowedOrigins
-     * @return $this
-     */
     public function setAllowedOrigins(array $allowedOrigins)
     {
         $this->allowedOrigins = $allowedOrigins;

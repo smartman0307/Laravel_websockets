@@ -16,62 +16,26 @@ use Symfony\Component\Routing\RouteCollection;
 
 class WebSocketServerFactory
 {
-    /**
-     * The host the server will run on.
-     *
-     * @var string
-     */
+    /** @var string */
     protected $host = '127.0.0.1';
 
-    /**
-     * The port to run on.
-     *
-     * @var int
-     */
+    /** @var int */
     protected $port = 8080;
 
-    /**
-     * The event loop instance.
-     *
-     * @var \React\EventLoop\LoopInterface
-     */
+    /** @var \React\EventLoop\LoopInterface */
     protected $loop;
 
-    /**
-     * The routes to register.
-     *
-     * @var \Symfony\Component\Routing\RouteCollection
-     */
+    /** @var \Symfony\Component\Routing\RouteCollection */
     protected $routes;
 
-    /**
-     * Console output.
-     *
-     * @var Symfony\Component\Console\Output\OutputInterface
-     */
+    /** @var Symfony\Component\Console\Output\OutputInterface */
     protected $consoleOutput;
 
-    /**
-     * Initialize the class.
-     *
-     * @param  string  $host
-     * @param  int  $port
-     * @return void
-     */
-    public function __construct(string $host, int $port)
+    public function __construct()
     {
-        $this->host = $host;
-        $this->port = $port;
-
         $this->loop = LoopFactory::create();
     }
 
-    /**
-     * Add the routes.
-     *
-     * @param \Symfony\Component\Routing\RouteCollection $routes
-     * @return $this
-     */
     public function useRoutes(RouteCollection $routes)
     {
         $this->routes = $routes;
@@ -79,12 +43,20 @@ class WebSocketServerFactory
         return $this;
     }
 
-    /**
-     * Set the loop instance.
-     *
-     * @param  \React\EventLoop\LoopInterface  $loop
-     * @return $this
-     */
+    public function setHost(string $host)
+    {
+        $this->host = $host;
+
+        return $this;
+    }
+
+    public function setPort(string $port)
+    {
+        $this->port = $port;
+
+        return $this;
+    }
+
     public function setLoop(LoopInterface $loop)
     {
         $this->loop = $loop;
@@ -92,12 +64,6 @@ class WebSocketServerFactory
         return $this;
     }
 
-    /**
-     * Set the console output.
-     *
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $consoleOutput
-     * @return $this
-     */
     public function setConsoleOutput(OutputInterface $consoleOutput)
     {
         $this->consoleOutput = $consoleOutput;
@@ -105,11 +71,6 @@ class WebSocketServerFactory
         return $this;
     }
 
-    /**
-     * Set up the server.
-     *
-     * @return \Ratchet\Server\IoServer
-     */
     public function createServer(): IoServer
     {
         $socket = new Server("{$this->host}:{$this->port}", $this->loop);

@@ -2,30 +2,19 @@
 
 namespace BeyondCode\LaravelWebSockets\Apps;
 
+use Illuminate\Support\Collection;
+
 class ConfigAppManager implements AppManager
 {
-    /**
-     * The list of apps.
-     *
-     * @var \Illuminate\Support\Collection
-     */
+    /** @var Collection */
     protected $apps;
 
-    /**
-     * Initialize the class.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->apps = collect(config('websockets.apps'));
     }
 
-    /**
-     * Get all apps.
-     *
-     * @return array[\BeyondCode\LaravelWebSockets\Apps\App]
-     */
+    /**  @return array[\BeyondCode\LaravelWebSockets\Apps\App] */
     public function all(): array
     {
         return $this->apps
@@ -35,12 +24,6 @@ class ConfigAppManager implements AppManager
             ->toArray();
     }
 
-    /**
-     * Get app by id.
-     *
-     * @param  mixed  $appId
-     * @return \BeyondCode\LaravelWebSockets\Apps\App|null
-     */
     public function findById($appId): ?App
     {
         $appAttributes = $this
@@ -50,13 +33,7 @@ class ConfigAppManager implements AppManager
         return $this->instantiate($appAttributes);
     }
 
-    /**
-     * Get app by app key.
-     *
-     * @param  mixed  $appKey
-     * @return \BeyondCode\LaravelWebSockets\Apps\App|null
-     */
-    public function findByKey($appKey): ?App
+    public function findByKey(string $appKey): ?App
     {
         $appAttributes = $this
             ->apps
@@ -65,13 +42,7 @@ class ConfigAppManager implements AppManager
         return $this->instantiate($appAttributes);
     }
 
-    /**
-     * Get app by secret.
-     *
-     * @param  mixed  $appSecret
-     * @return \BeyondCode\LaravelWebSockets\Apps\App|null
-     */
-    public function findBySecret($appSecret): ?App
+    public function findBySecret(string $appSecret): ?App
     {
         $appAttributes = $this
             ->apps
@@ -80,12 +51,6 @@ class ConfigAppManager implements AppManager
         return $this->instantiate($appAttributes);
     }
 
-    /**
-     * Map the app into an App instance.
-     *
-     * @param  array|null  $app
-     * @return \BeyondCode\LaravelWebSockets\Apps\App|null
-     */
     protected function instantiate(?array $appAttributes): ?App
     {
         if (! $appAttributes) {

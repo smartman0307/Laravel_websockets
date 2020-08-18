@@ -13,29 +13,14 @@ class StatisticsUpdated implements ShouldBroadcast
 {
     use SerializesModels;
 
-    /**
-     * The statistic instance that got updated.
-     *
-     * @var \BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry
-     */
+    /** @var \BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry */
     protected $webSocketsStatisticsEntry;
 
-    /**
-     * Initialize the event.
-     *
-     * @param  \BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry  $webSocketsStatisticsEntry
-     * @return void
-     */
     public function __construct(WebSocketsStatisticsEntry $webSocketsStatisticsEntry)
     {
         $this->webSocketsStatisticsEntry = $webSocketsStatisticsEntry;
     }
 
-    /**
-     * Format the broadcasting message.
-     *
-     * @return array
-     */
     public function broadcastWith()
     {
         return [
@@ -47,25 +32,13 @@ class StatisticsUpdated implements ShouldBroadcast
         ];
     }
 
-    /**
-     * Specify the channel to broadcast on.
-     *
-     * @return \Illuminate\Broadcasting\Channel
-     */
     public function broadcastOn()
     {
         $channelName = Str::after(DashboardLogger::LOG_CHANNEL_PREFIX.'statistics', 'private-');
 
-        return new PrivateChannel(
-            Str::after(DashboardLogger::LOG_CHANNEL_PREFIX.'statistics', 'private-')
-        );
+        return new PrivateChannel($channelName);
     }
 
-    /**
-     * Define the broadcasted event name.
-     *
-     * @return string
-     */
     public function broadcastAs()
     {
         return 'statistics-updated';

@@ -13,20 +13,9 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class FetchChannelsController extends Controller
 {
-    /**
-     * The replicator driver.
-     *
-     * @var \BeyondCode\LaravelWebSockets\PubSub\ReplicationInterface
-     */
+    /** @var ReplicationInterface */
     protected $replicator;
 
-    /**
-     * Initialize the class.
-     *
-     * @param  \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager  $channelManager
-     * @param  \BeyondCode\LaravelWebSockets\PubSub\ReplicationInterface  $replicator
-     * @return void
-     */
     public function __construct(ChannelManager $channelManager, ReplicationInterface $replicator)
     {
         parent::__construct($channelManager);
@@ -34,12 +23,6 @@ class FetchChannelsController extends Controller
         $this->replicator = $replicator;
     }
 
-    /**
-     * Handle the incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function __invoke(Request $request)
     {
         $attributes = [];
