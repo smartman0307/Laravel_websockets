@@ -14,19 +14,24 @@ The default configuration has a SSL section that looks like this:
 
 ```php
 'ssl' => [
+    /*
+     * Path to local certificate file on filesystem. It must be a PEM encoded file which
+     * contains your certificate and private key. It can optionally contain the
+     * certificate chain of issuers. The private key also may be contained
+     * in a separate file specified by local_pk.
+     */
+    'local_cert' => null,
 
-    'local_cert' => env('LARAVEL_WEBSOCKETS_SSL_LOCAL_CERT', null),
+    /*
+     * Path to local private key file on filesystem in case of separate files for
+     * certificate (local_cert) and private key.
+     */
+    'local_pk' => null,
 
-    'capath' => env('LARAVEL_WEBSOCKETS_SSL_CA', null),
-
-    'local_pk' => env('LARAVEL_WEBSOCKETS_SSL_LOCAL_PK', null),
-
-    'passphrase' => env('LARAVEL_WEBSOCKETS_SSL_PASSPHRASE', null),
-
-    'verify_peer' => env('APP_ENV') === 'production',
-
-    'allow_self_signed' => env('APP_ENV') !== 'production',
-
+    /*
+     * Passphrase with which your local_cert file was encoded.
+     */
+    'passphrase' => null
 ],
 ```
 
@@ -57,8 +62,7 @@ window.Echo = new Echo({
     wsHost: window.location.hostname,
     wsPort: 6001,
     disableStats: true,
-    forceTLS: true,
-    enabledTransports: ['ws', 'wss'],
+    forceTLS: true
 });
 ```
 
@@ -74,10 +78,9 @@ When broadcasting events from your Laravel application to the WebSocket server, 
     'app_id' => env('PUSHER_APP_ID'),
     'options' => [
         'cluster' => env('PUSHER_APP_CLUSTER'),
-        'encrypted' => true,
         'host' => '127.0.0.1',
         'port' => 6001,
-        'scheme' => 'https',
+        'scheme' => 'https'
     ],
 ],
 ```
@@ -95,19 +98,26 @@ Make sure that you replace `YOUR-USERNAME` with your Mac username and `VALET-SIT
 
 ```php
 'ssl' => [
-
+    /*
+     * Path to local certificate file on filesystem. It must be a PEM encoded file which
+     * contains your certificate and private key. It can optionally contain the
+     * certificate chain of issuers. The private key also may be contained
+     * in a separate file specified by local_pk.
+     */
     'local_cert' => '/Users/YOUR-USERNAME/.config/valet/Certificates/VALET-SITE.TLD.crt',
 
-    'capath' => env('LARAVEL_WEBSOCKETS_SSL_CA', null),
+    /*
+     * Path to local private key file on filesystem in case of separate files for
+     * certificate (local_cert) and private key.
+     */
+    'local_pk' => '/Users/YOUR-USERNAME/.config/valet/Certificates/VALET-SITE.TLD.key',
 
-    'local_pk' => 'local_pk' => '/Users/YOUR-USERNAME/.config/valet/Certificates/VALET-SITE.TLD.key',
+    /*
+     * Passphrase with which your local_cert file was encoded.
+     */
+    'passphrase' => null,
 
-    'passphrase' => env('LARAVEL_WEBSOCKETS_SSL_PASSPHRASE', null),
-
-    'verify_peer' => env('APP_ENV') === 'production',
-
-    'allow_self_signed' => env('APP_ENV') !== 'production',
-
+    'verify_peer' => false,
 ],
 ```
 
@@ -123,7 +133,6 @@ You also need to disable SSL verification.
     'app_id' => env('PUSHER_APP_ID'),
     'options' => [
         'cluster' => env('PUSHER_APP_CLUSTER'),
-        'encrypted' => true,
         'host' => '127.0.0.1',
         'port' => 6001,
         'scheme' => 'https',
