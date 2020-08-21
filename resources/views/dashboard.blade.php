@@ -84,29 +84,9 @@
       v-if="connected && app.statisticsEnabled"
       class="w-full my-6 px-6"
     >
-      <div class="flex justify-between items-center">
-        <span class="font-semibold uppercase text-gray-700">
-          Live statistics
-        </span>
-
-        <div class="space-x-3 flex items-center">
-          <div>
-            <input
-              type="checkbox"
-              v-model="autoRefresh"
-              class="mr-2"
-            />
-            Refresh automatically
-          </div>
-
-          <button
-            @click="loadChart"
-            class="rounded-full bg-blue-500 hover:bg-blue-600 focus:outline-none text-white px-3 py-1"
-          >
-            Refresh
-          </button>
-        </div>
-      </div>
+    <div class="font-semibold uppercase text-gray-700">
+      Live statistics
+    </div>
 
       <div
         id="statisticsChart"
@@ -242,9 +222,6 @@
       connected: false,
       connecting: false,
       sendingEvent: false,
-      autoRefresh: true,
-      refreshInterval: {{ $refreshInterval }},
-      refreshTicker: null,
       chart: null,
       pusher: null,
       app: null,
@@ -258,19 +235,6 @@
     },
     mounted () {
       this.app = this.apps[0] || null;
-    },
-    destroyed () {
-      if (this.refreshTicker) {
-        this.clearRefreshInterval();
-      }
-    },
-    watch: {
-      connected (newVal) {
-        newVal ? this.startRefreshInterval() : this.clearRefreshInterval();
-      },
-      autoRefresh (newVal) {
-        newVal ? this.startRefreshInterval() : this.clearRefreshInterval();
-      },
     },
     methods: {
       connect () {
@@ -310,14 +274,12 @@
           this.connected = false;
           this.connecting = false;
           this.logs = [];
-          this.chart = null;
         });
 
         this.pusher.connection.bind('error', event => {
           if (event.error.data.code === 4100) {
             this.connected = false;
             this.logs = [];
-            this.chart = null;
 
             throw new Error("Over capacity");
           }
@@ -326,12 +288,12 @@
         });
 
         this.subscribeToAllChannels();
+        this.subscribeToStatistics();
       },
 
       disconnect () {
         this.pusher.disconnect();
         this.connecting = false;
-        this.chart = null;
       },
 
       loadChart () {
@@ -371,10 +333,7 @@
               autosize: true,
             };
 
-            this.chart = this.chart
-              ? Plotly.react('statisticsChart', chartData, layout)
-              : Plotly.newPlot('statisticsChart', chartData, layout);
-
+            this.chart = Plotly.newPlot('statisticsChart', chartData, layout);
         });
       },
 
@@ -386,6 +345,18 @@
         this.pusher.subscribe(`{{ $logPrefix }}${channel}`)
           .bind('log-message', (data) => {
             this.logs.push(data);
+          });
+      },
+
+      subscribeToStatistics () {
+        this.pusher.subscribe('{{ $logPrefix }}statistics')
+          .bind('statistics-updated', (data) => {
+            var update = {
+              x:  [[data.time], [data.time], [data.time]],
+              y: [[data.peak_connection_count], [data.websocket_message_count], [data.api_message_count]],
+            };
+
+            Plotly.extendTraces('statisticsChart', update, [0, 1, 2]);
           });
       },
 
@@ -443,17 +414,6 @@
         }
 
         return 'bg-gray-700 text-white';
-      },
-
-      startRefreshInterval () {
-        this.refreshTicker = setInterval(function () {
-            this.loadChart();
-          }.bind(this), this.refreshInterval * 1000);
-      },
-
-      stopRefreshInterval () {
-        clearInterval(this.refreshTicker);
-        this.refreshTicker = null;
       },
     },
   });

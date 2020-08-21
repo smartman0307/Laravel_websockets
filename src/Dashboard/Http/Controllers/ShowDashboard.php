@@ -22,7 +22,6 @@ class ShowDashboard
             'port' => config('websockets.dashboard.port', 6001),
             'channels' => DashboardLogger::$channels,
             'logPrefix' => DashboardLogger::LOG_CHANNEL_PREFIX,
-            'refreshInterval' => config('websockets.statistics.interval_in_seconds'),
         ]);
     }
 }

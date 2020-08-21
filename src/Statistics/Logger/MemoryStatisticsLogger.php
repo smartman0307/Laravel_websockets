@@ -3,9 +3,11 @@
 namespace BeyondCode\LaravelWebSockets\Statistics\Logger;
 
 use BeyondCode\LaravelWebSockets\Apps\App;
-use BeyondCode\LaravelWebSockets\Statistics\Drivers\StatisticsDriver;
+use BeyondCode\LaravelWebSockets\Statistics\Http\Controllers\WebSocketStatisticsEntriesController;
 use BeyondCode\LaravelWebSockets\Statistics\Statistic;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
+use Clue\React\Buzz\Browser;
+use function GuzzleHttp\Psr7\stream_for;
 use Ratchet\ConnectionInterface;
 
 class MemoryStatisticsLogger implements StatisticsLogger
@@ -25,23 +27,23 @@ class MemoryStatisticsLogger implements StatisticsLogger
     protected $channelManager;
 
     /**
-     * The statistics driver instance.
+     * The Browser instance.
      *
-     * @var \BeyondCode\LaravelWebSockets\Statistics\Drivers\StatisticsDriver
+     * @var \Clue\React\Buzz\Browser
      */
-    protected $driver;
+    protected $browser;
 
     /**
      * Initialize the logger.
      *
      * @param  \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager  $channelManager
-     * @param  \BeyondCode\LaravelWebSockets\Statistics\Drivers\StatisticsDriver  $driver
+     * @param  \Clue\React\Buzz\Browser  $browser
      * @return void
      */
-    public function __construct(ChannelManager $channelManager, StatisticsDriver $driver)
+    public function __construct(ChannelManager $channelManager, Browser $browser)
     {
         $this->channelManager = $channelManager;
-        $this->driver = $driver;
+        $this->browser = $browser;
     }
 
     /**
@@ -104,7 +106,16 @@ class MemoryStatisticsLogger implements StatisticsLogger
                 continue;
             }
 
-            $this->driver::create($statistic->toArray());
+            $postData = array_merge($statistic->toArray(), [
+                'secret' => App::findById($appId)->secret,
+            ]);
+
+            $this->browser
+                ->post(
+                    action([WebSocketStatisticsEntriesController::class, 'store']),
+                    ['Content-Type' => 'application/json'],
+                    stream_for(json_encode($postData))
+                );
 
             $currentConnectionCount = $this->channelManager->getConnectionCount($appId);
 
