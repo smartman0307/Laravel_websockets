@@ -2,8 +2,10 @@
 
 namespace BeyondCode\LaravelWebSockets\Tests\Dashboard;
 
-use BeyondCode\LaravelWebSockets\Tests\Models\User;
+use BeyondCode\LaravelWebSockets\Statistics\Logger\MemoryStatisticsLogger;
 use BeyondCode\LaravelWebSockets\Tests\TestCase;
+use BeyondCode\LaravelWebSockets\Tests\Models\User;
+use BeyondCode\LaravelWebSockets\Tests\Mocks\Message;
 
 class SendMessageTest extends TestCase
 {
