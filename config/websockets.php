@@ -78,6 +78,7 @@ return [
         [
             'id' => env('PUSHER_APP_ID'),
             'name' => env('APP_NAME'),
+            'host' => env('PUSHER_APP_HOST'),
             'key' => env('PUSHER_APP_KEY'),
             'secret' => env('PUSHER_APP_SECRET'),
             'path' => env('PUSHER_APP_PATH'),
@@ -145,6 +146,14 @@ return [
     'handlers' => [
 
         'websocket' => \BeyondCode\LaravelWebSockets\WebSockets\WebSocketHandler::class,
+
+        'trigger_event' => \BeyondCode\LaravelWebSockets\HttpApi\Controllers\TriggerEventController::class,
+
+        'fetch_channels' => \BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchChannelsController::class,
+
+        'fetch_channel' => \BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchChannelController::class,
+
+        'fetch_users' => \BeyondCode\LaravelWebSockets\HttpApi\Controllers\FetchUsersController::class,
 
     ],
 
