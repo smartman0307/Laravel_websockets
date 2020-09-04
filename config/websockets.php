@@ -42,6 +42,21 @@ return [
 
         'app' => \BeyondCode\LaravelWebSockets\Apps\ConfigAppManager::class,
 
+        /*
+        |--------------------------------------------------------------------------
+        | Channel Manager
+        |--------------------------------------------------------------------------
+        |
+        | When users subscribe or unsubscribe from specific channels,
+        | the connections are stored to keep track of any interaction with the
+        | WebSocket server.
+        | You can however add your own implementation that will help the store
+        | of the channels alongside their connections.
+        |
+        */
+
+        'channel' => \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManagers\ArrayChannelManager::class,
+
     ],
 
     /*
@@ -176,8 +191,6 @@ return [
 
             'statistics_logger' => \BeyondCode\LaravelWebSockets\Statistics\Logger\MemoryStatisticsLogger::class,
 
-            'channel_manager' => \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManagers\ArrayChannelManager::class,
-
         ],
 
         /*
@@ -200,8 +213,6 @@ return [
             'client' => \BeyondCode\LaravelWebSockets\PubSub\Drivers\RedisClient::class,
 
             'statistics_logger' => \BeyondCode\LaravelWebSockets\Statistics\Logger\RedisStatisticsLogger::class,
-
-            'channel_manager' => \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManagers\RedisChannelManager::class,
 
         ],
 

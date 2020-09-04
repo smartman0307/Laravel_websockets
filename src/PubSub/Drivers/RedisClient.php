@@ -7,7 +7,6 @@ use BeyondCode\LaravelWebSockets\PubSub\ReplicationInterface;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
 use Clue\React\Redis\Client;
 use Clue\React\Redis\Factory;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use React\EventLoop\LoopInterface;
 use React\Promise\PromiseInterface;
@@ -44,13 +43,6 @@ class RedisClient extends LocalClient
     protected $subscribeClient;
 
     /**
-     * The Redis manager instance.
-     *
-     * @var \Illuminate\Redis\RedisManager
-     */
-    protected $redis;
-
-    /**
      * Mapping of subscribed channels, where the key is the channel name,
      * and the value is the amount of connections which are subscribed to
      * that channel. Used to keep track of whether we still need to stay
@@ -68,7 +60,6 @@ class RedisClient extends LocalClient
     public function __construct()
     {
         $this->serverId = Str::uuid()->toString();
-        $this->redis = Cache::getRedis();
     }
 
     /**
@@ -185,36 +176,6 @@ class RedisClient extends LocalClient
     }
 
     /**
-     * Subscribe to the app's pubsub keyspace.
-     *
-     * @param  mixed  $appId
-     * @return bool
-     */
-    public function subscribeToApp($appId): bool
-    {
-        $this->subscribeClient->__call('subscribe', [$this->getTopicName($appId)]);
-
-        $this->redis->hincrby($this->getTopicName($appId), 'connections', 1);
-
-        return true;
-    }
-
-    /**
-     * Unsubscribe from the app's pubsub keyspace.
-     *
-     * @param  mixed  $appId
-     * @return bool
-     */
-    public function unsubscribeFromApp($appId): bool
-    {
-        $this->subscribeClient->__call('unsubscribe', [$this->getTopicName($appId)]);
-
-        $this->redis->hincrby($this->getTopicName($appId), 'connections', -1);
-
-        return true;
-    }
-
-    /**
      * Add a member to a channel. To be called when they have
      * subscribed to the channel.
      *
@@ -226,7 +187,7 @@ class RedisClient extends LocalClient
      */
     public function joinChannel($appId, string $channel, string $socketId, string $data)
     {
-        $this->redis->hset($this->getTopicName($appId, $channel), $socketId, $data);
+        $this->publishClient->__call('hset', [$this->getTopicName($appId, $channel), $socketId, $data]);
 
         DashboardLogger::log($appId, DashboardLogger::TYPE_REPLICATOR_JOINED_CHANNEL, [
             'channel' => $channel,
@@ -248,7 +209,7 @@ class RedisClient extends LocalClient
      */
     public function leaveChannel($appId, string $channel, string $socketId)
     {
-        $this->redis->hdel($this->getTopicName($appId, $channel), $socketId);
+        $this->publishClient->__call('hdel', [$this->getTopicName($appId, $channel), $socketId]);
 
         DashboardLogger::log($appId, DashboardLogger::TYPE_REPLICATOR_LEFT_CHANNEL, [
             'channel' => $channel,
@@ -295,19 +256,6 @@ class RedisClient extends LocalClient
             ->then(function ($data) use ($channelNames) {
                 return array_combine($channelNames, $data);
             });
-    }
-
-    /**
-     * Get the amount of unique connections.
-     *
-     * @param  mixed  $appId
-     * @return null|int|\React\Promise\PromiseInterface
-     */
-    public function appConnectionsCount($appId)
-    {
-        // Use the in-built Redis manager to avoid async run.
-
-        return $this->redis->hget($this->getTopicName($appId), 'connections') ?: 0;
     }
 
     /**
@@ -429,19 +377,13 @@ class RedisClient extends LocalClient
      * app ID and channel name.
      *
      * @param  mixed  $appId
-     * @param  string|null  $channel
+     * @param  string  $channel
      * @return string
      */
-    protected function getTopicName($appId, string $channel = null): string
+    protected function getTopicName($appId, string $channel): string
     {
         $prefix = config('database.redis.options.prefix', null);
 
-        $hash = "{$prefix}{$appId}";
-
-        if ($channel) {
-            $hash .= ":{$channel}";
-        }
-
-        return $hash;
+        return "{$prefix}{$appId}:{$channel}";
     }
 }
