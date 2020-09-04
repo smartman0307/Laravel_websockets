@@ -73,7 +73,7 @@ class ArrayChannelManager implements ChannelManager
      * @param  mixed  $appId
      * @return int
      */
-    public function getLocalConnectionsCount($appId): int
+    public function getConnectionCount($appId): int
     {
         return collect($this->getChannels($appId))
             ->flatMap(function (Channel $channel) {
@@ -81,17 +81,6 @@ class ArrayChannelManager implements ChannelManager
             })
             ->unique()
             ->count();
-    }
-
-    /**
-     * Get the connections count across multiple servers.
-     *
-     * @param  mixed  $appId
-     * @return int
-     */
-    public function getGlobalConnectionsCount($appId): int
-    {
-        return $this->getLocalConnectionsCount($appId);
     }
 
     /**

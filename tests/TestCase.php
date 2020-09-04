@@ -50,7 +50,7 @@ abstract class TestCase extends BaseTestCase
 
         $this->withFactories(__DIR__.'/database/factories');
 
-        $this->configurePubSub();
+        $this->pusherServer = $this->app->make(config('websockets.handlers.websocket'));
 
         $this->channelManager = $this->app->make(ChannelManager::class);
 
@@ -63,7 +63,7 @@ abstract class TestCase extends BaseTestCase
 
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
-        $this->pusherServer = $this->app->make(config('websockets.handlers.websocket'));
+        $this->configurePubSub();
     }
 
     /**
@@ -151,7 +151,6 @@ abstract class TestCase extends BaseTestCase
 
         if (in_array($replicationDriver, ['redis'])) {
             $app['config']->set('broadcasting.default', 'pusher');
-            $app['config']->set('cache.default', 'redis');
         }
     }
 

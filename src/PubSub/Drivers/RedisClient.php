@@ -176,36 +176,6 @@ class RedisClient extends LocalClient
     }
 
     /**
-     * Subscribe to the app's pubsub keyspace.
-     *
-     * @param  mixed  $appId
-     * @return bool
-     */
-    public function subscribeToApp($appId): bool
-    {
-        $this->subscribeClient->__call('subscribe', [$this->getTopicName($appId)]);
-
-        $this->publishClient->__call('hincrby', [$this->getTopicName($appId), 'connections', 1]);
-
-        return true;
-    }
-
-    /**
-     * Unsubscribe from the app's pubsub keyspace.
-     *
-     * @param  mixed  $appId
-     * @return bool
-     */
-    public function unsubscribeFromApp($appId): bool
-    {
-        $this->subscribeClient->__call('unsubscribe', [$this->getTopicName($appId)]);
-
-        $this->publishClient->__call('hincrby', [$this->getTopicName($appId), 'connections', -1]);
-
-        return true;
-    }
-
-    /**
      * Add a member to a channel. To be called when they have
      * subscribed to the channel.
      *
@@ -286,17 +256,6 @@ class RedisClient extends LocalClient
             ->then(function ($data) use ($channelNames) {
                 return array_combine($channelNames, $data);
             });
-    }
-
-    /**
-     * Get the amount of connections aggregated on multiple instances.
-     *
-     * @param  mixed  $appId
-     * @return null|int|\React\Promise\PromiseInterface
-     */
-    public function getGlobalConnectionsCount($appId)
-    {
-        return $this->publishClient->hget($this->getTopicName($appId), 'connections');
     }
 
     /**
@@ -418,19 +377,13 @@ class RedisClient extends LocalClient
      * app ID and channel name.
      *
      * @param  mixed  $appId
-     * @param  string|null  $channel
+     * @param  string  $channel
      * @return string
      */
-    protected function getTopicName($appId, string $channel = null): string
+    protected function getTopicName($appId, string $channel): string
     {
         $prefix = config('database.redis.options.prefix', null);
 
-        $hash = "{$prefix}{$appId}";
-
-        if ($channel) {
-            $hash .= ":{$channel}";
-        }
-
-        return $hash;
+        return "{$prefix}{$appId}:{$channel}";
     }
 }
