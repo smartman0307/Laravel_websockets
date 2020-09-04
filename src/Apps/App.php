@@ -39,7 +39,7 @@ class App
     /**
      * Find the app by id.
      *
-     * @param  int  $appId
+     * @param  mixed  $appId
      * @return \BeyondCode\LaravelWebSockets\Apps\App|null
      */
     public static function findById($appId)
@@ -50,7 +50,7 @@ class App
     /**
      * Find the app by app key.
      *
-     * @param  string  $appKey
+     * @param  mixed  $appId
      * @return \BeyondCode\LaravelWebSockets\Apps\App|null
      */
     public static function findByKey($appKey): ?self
@@ -61,7 +61,7 @@ class App
     /**
      * Find the app by app secret.
      *
-     * @param  string  $appSecret
+     * @param  mixed  $appId
      * @return \BeyondCode\LaravelWebSockets\Apps\App|null
      */
     public static function findBySecret($appSecret): ?self
@@ -72,9 +72,9 @@ class App
     /**
      * Initialize the Web Socket app instance.
      *
-     * @param  int     $appId
-     * @param  string  $key
-     * @param  string  $secret
+     * @param  mixed  $appId
+     * @param  mixed  $key
+     * @param  mixed  $secret
      * @return void
      * @throws \BeyondCode\LaravelWebSockets\Exceptions\InvalidApp
      */
