@@ -5,8 +5,10 @@ namespace BeyondCode\LaravelWebSockets\Tests\Statistics\Controllers;
 use BeyondCode\LaravelWebSockets\Facades\StatisticsLogger;
 use BeyondCode\LaravelWebSockets\Statistics\Logger\MemoryStatisticsLogger;
 use BeyondCode\LaravelWebSockets\Statistics\Logger\NullStatisticsLogger;
+use BeyondCode\LaravelWebSockets\Statistics\Logger\RedisStatisticsLogger;
 use BeyondCode\LaravelWebSockets\Statistics\Models\WebSocketsStatisticsEntry;
 use BeyondCode\LaravelWebSockets\Tests\TestCase;
+use Illuminate\Support\Facades\Redis;
 
 class StatisticsLoggerTest extends TestCase
 {

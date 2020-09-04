@@ -2,6 +2,7 @@
 
 namespace BeyondCode\LaravelWebSockets\Tests\Dashboard;
 
+use BeyondCode\LaravelWebSockets\PubSub\ReplicationInterface;
 use BeyondCode\LaravelWebSockets\Statistics\Logger\RedisStatisticsLogger;
 use BeyondCode\LaravelWebSockets\Tests\Models\User;
 use BeyondCode\LaravelWebSockets\Tests\TestCase;
