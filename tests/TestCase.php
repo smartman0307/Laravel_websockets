@@ -274,9 +274,9 @@ abstract class TestCase extends BaseTestCase
 
         // Replace the publish and subscribe clients with a Mocked
         // factory lazy instance on boot.
-        $this->app->singleton(ReplicationInterface::class, function () {
+        $this->app->singleton(ReplicationInterface::class, function () use ($replicationDriver) {
             $client = config(
-                "websockets.replication.{$driver}.client",
+                "websockets.replication.{$replicationDriver}.client",
                 \BeyondCode\LaravelWebSockets\PubSub\Drivers\LocalClient::class
             );
 
