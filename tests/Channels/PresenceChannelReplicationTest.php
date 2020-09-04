@@ -4,6 +4,7 @@ namespace BeyondCode\LaravelWebSockets\Tests\Channels;
 
 use BeyondCode\LaravelWebSockets\Tests\Mocks\Message;
 use BeyondCode\LaravelWebSockets\Tests\TestCase;
+use Illuminate\Support\Facades\Redis;
 
 class PresenceChannelReplicationTest extends TestCase
 {
@@ -52,6 +53,10 @@ class PresenceChannelReplicationTest extends TestCase
             ])
             ->assertCalledWithArgs('hgetall', ['laravel_database_1234:presence-channel'])
             ->assertCalled('publish');
+
+        $this->assertNotNull(
+            Redis::hget('laravel_database_1234:presence-channel', $connection->socketId)
+        );
     }
 
     /** @test */
@@ -130,7 +135,7 @@ class PresenceChannelReplicationTest extends TestCase
 
         $this->getPublishClient()
             ->assertCalled('hset')
-            ->assertcalledWithArgs('hgetall', ['laravel_database_1234:presence-channel'])
+            ->assertCalledWithArgs('hgetall', ['laravel_database_1234:presence-channel'])
             ->assertCalled('publish');
     }
 }

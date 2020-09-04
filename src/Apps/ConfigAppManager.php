@@ -38,7 +38,7 @@ class ConfigAppManager implements AppManager
     /**
      * Get app by id.
      *
-     * @param  string|int  $appId
+     * @param  mixed  $appId
      * @return \BeyondCode\LaravelWebSockets\Apps\App|null
      */
     public function findById($appId): ?App
@@ -53,7 +53,7 @@ class ConfigAppManager implements AppManager
     /**
      * Get app by app key.
      *
-     * @param  string  $appKey
+     * @param  mixed  $appKey
      * @return \BeyondCode\LaravelWebSockets\Apps\App|null
      */
     public function findByKey($appKey): ?App
@@ -68,7 +68,7 @@ class ConfigAppManager implements AppManager
     /**
      * Get app by secret.
      *
-     * @param  string  $appSecret
+     * @param  mixed  $appSecret
      * @return \BeyondCode\LaravelWebSockets\Apps\App|null
      */
     public function findBySecret($appSecret): ?App
