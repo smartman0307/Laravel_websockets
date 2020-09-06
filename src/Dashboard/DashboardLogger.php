@@ -3,67 +3,78 @@
 namespace BeyondCode\LaravelWebSockets\Dashboard;
 
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
+use Ratchet\ConnectionInterface;
+use stdClass;
 
 class DashboardLogger
 {
     const LOG_CHANNEL_PREFIX = 'private-websockets-dashboard-';
-
-    const TYPE_DISCONNECTED = 'disconnected';
-
-    const TYPE_CONNECTED = 'connected';
-
+    const TYPE_DISCONNECTION = 'disconnection';
+    const TYPE_CONNECTION = 'connection';
     const TYPE_VACATED = 'vacated';
-
     const TYPE_OCCUPIED = 'occupied';
-
     const TYPE_SUBSCRIBED = 'subscribed';
-
-    const TYPE_WS_MESSAGE = 'ws-message';
-
+    const TYPE_CLIENT_MESSAGE = 'client-message';
     const TYPE_API_MESSAGE = 'api-message';
 
-    const TYPE_REPLICATOR_SUBSCRIBED = 'replicator-subscribed';
+    public static function connection(ConnectionInterface $connection)
+    {
+        /** @var \GuzzleHttp\Psr7\Request $request */
+        $request = $connection->httpRequest;
 
-    const TYPE_REPLICATOR_UNSUBSCRIBED = 'replicator-unsubscribed';
+        static::log($connection->app->id, static::TYPE_CONNECTION, [
+            'details' => "Origin: {$request->getUri()->getScheme()}://{$request->getUri()->getHost()}",
+            'socketId' => $connection->socketId,
+        ]);
+    }
 
-    const TYPE_REPLICATOR_JOINED_CHANNEL = 'replicator-joined';
+    public static function occupied(ConnectionInterface $connection, string $channelName)
+    {
+        static::log($connection->app->id, static::TYPE_OCCUPIED, [
+            'details' => "Channel: {$channelName}",
+        ]);
+    }
 
-    const TYPE_REPLICATOR_LEFT_CHANNEL = 'replicator-left';
+    public static function subscribed(ConnectionInterface $connection, string $channelName)
+    {
+        static::log($connection->app->id, static::TYPE_SUBSCRIBED, [
+            'socketId' => $connection->socketId,
+            'details' => "Channel: {$channelName}",
+        ]);
+    }
 
-    const TYPE_REPLICATOR_MESSAGE_PUBLISHED = 'replicator-message-published';
+    public static function clientMessage(ConnectionInterface $connection, stdClass $payload)
+    {
+        static::log($connection->app->id, static::TYPE_CLIENT_MESSAGE, [
+            'details' => "Channel: {$payload->channel}, Event: {$payload->event}",
+            'socketId' => $connection->socketId,
+            'data' => json_encode($payload),
+        ]);
+    }
 
-    const TYPE_REPLICATOR_MESSAGE_RECEIVED = 'replicator-message-received';
+    public static function disconnection(ConnectionInterface $connection)
+    {
+        static::log($connection->app->id, static::TYPE_DISCONNECTION, [
+            'socketId' => $connection->socketId,
+        ]);
+    }
 
-    /**
-     * The list of all channels.
-     *
-     * @var array
-     */
-    public static $channels = [
-        self::TYPE_DISCONNECTED,
-        self::TYPE_CONNECTED,
-        self::TYPE_VACATED,
-        self::TYPE_OCCUPIED,
-        self::TYPE_SUBSCRIBED,
-        self::TYPE_WS_MESSAGE,
-        self::TYPE_API_MESSAGE,
-        self::TYPE_REPLICATOR_SUBSCRIBED,
-        self::TYPE_REPLICATOR_UNSUBSCRIBED,
-        self::TYPE_REPLICATOR_JOINED_CHANNEL,
-        self::TYPE_REPLICATOR_LEFT_CHANNEL,
-        self::TYPE_REPLICATOR_MESSAGE_PUBLISHED,
-        self::TYPE_REPLICATOR_MESSAGE_RECEIVED,
-    ];
+    public static function vacated(ConnectionInterface $connection, string $channelName)
+    {
+        static::log($connection->app->id, static::TYPE_VACATED, [
+            'details' => "Channel: {$channelName}",
+        ]);
+    }
 
-    /**
-     * Log an event for an app.
-     *
-     * @param  mixed  $appId
-     * @param  string  $type
-     * @param  array  $details
-     * @return void
-     */
-    public static function log($appId, string $type, array $details = [])
+    public static function apiMessage($appId, string $channel, string $event, string $payload)
+    {
+        static::log($appId, static::TYPE_API_MESSAGE, [
+            'details' => "Channel: {$channel}, Event: {$event}",
+            'data' => $payload,
+        ]);
+    }
+
+    public static function log($appId, string $type, array $attributes = [])
     {
         $channelName = static::LOG_CHANNEL_PREFIX.$type;
 
@@ -75,8 +86,7 @@ class DashboardLogger
             'data' => [
                 'type' => $type,
                 'time' => strftime('%H:%M:%S'),
-                'details' => $details,
-            ],
+            ] + $attributes,
         ]);
     }
 }

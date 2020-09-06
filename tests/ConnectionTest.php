@@ -5,7 +5,6 @@ namespace BeyondCode\LaravelWebSockets\Tests;
 use BeyondCode\LaravelWebSockets\Apps\App;
 use BeyondCode\LaravelWebSockets\Tests\Mocks\Message;
 use BeyondCode\LaravelWebSockets\WebSockets\Exceptions\ConnectionsOverCapacity;
-use BeyondCode\LaravelWebSockets\WebSockets\Exceptions\OriginNotAllowed;
 use BeyondCode\LaravelWebSockets\WebSockets\Exceptions\UnknownAppKey;
 
 class ConnectionTest extends TestCase
@@ -15,7 +14,7 @@ class ConnectionTest extends TestCase
     {
         $this->expectException(UnknownAppKey::class);
 
-        $this->pusherServer->onOpen($this->getWebSocketConnection('test'));
+        $this->pusherServer->onOpen($this->getWebSocketConnection('/?appKey=test'));
     }
 
     /** @test */
@@ -31,36 +30,12 @@ class ConnectionTest extends TestCase
     /** @test */
     public function app_can_not_exceed_maximum_capacity()
     {
-        $this->runOnlyOnLocalReplication();
-
         $this->app['config']->set('websockets.apps.0.capacity', 2);
 
         $this->getConnectedWebSocketConnection(['test-channel']);
         $this->getConnectedWebSocketConnection(['test-channel']);
         $this->expectException(ConnectionsOverCapacity::class);
         $this->getConnectedWebSocketConnection(['test-channel']);
-    }
-
-    /** @test */
-    public function app_can_not_exceed_maximum_capacity_on_redis_replication()
-    {
-        $this->runOnlyOnRedisReplication();
-
-        $this->redis->hdel('laravel_database_1234', 'connections');
-
-        $this->app['config']->set('websockets.apps.0.capacity', 2);
-
-        $this->getConnectedWebSocketConnection(['test-channel']);
-        $this->getConnectedWebSocketConnection(['test-channel']);
-
-        $this->getPublishClient()
-            ->assertCalledWithArgsCount(2, 'hincrby', ['laravel_database_1234', 'connections', 1]);
-
-        $failedConnection = $this->getConnectedWebSocketConnection(['test-channel']);
-
-        $failedConnection
-            ->assertSentEvent('pusher:error', ['data' => ['message' => 'Over capacity', 'code' => 4100]])
-            ->assertClosed();
     }
 
     /** @test */
@@ -71,7 +46,7 @@ class ConnectionTest extends TestCase
         $this->pusherServer->onOpen($connection);
 
         $this->assertInstanceOf(App::class, $connection->app);
-        $this->assertSame('1234', $connection->app->id);
+        $this->assertSame(1234, $connection->app->id);
         $this->assertSame('TestKey', $connection->app->key);
         $this->assertSame('TestSecret', $connection->app->secret);
         $this->assertSame('Test App', $connection->app->name);
@@ -82,46 +57,12 @@ class ConnectionTest extends TestCase
     {
         $connection = $this->getWebSocketConnection();
 
-        $message = new Message(['event' => 'pusher:ping']);
+        $message = new Message('{"event": "pusher:ping"}');
 
         $this->pusherServer->onOpen($connection);
 
         $this->pusherServer->onMessage($connection, $message);
 
         $connection->assertSentEvent('pusher:pong');
-    }
-
-    /** @test */
-    public function origin_validation_should_fail_for_no_origin()
-    {
-        $this->expectException(OriginNotAllowed::class);
-
-        $connection = $this->getWebSocketConnection('TestOrigin');
-
-        $this->pusherServer->onOpen($connection);
-
-        $connection->assertSentEvent('pusher:connection_established');
-    }
-
-    /** @test */
-    public function origin_validation_should_fail_for_wrong_origin()
-    {
-        $this->expectException(OriginNotAllowed::class);
-
-        $connection = $this->getWebSocketConnection('TestOrigin', ['Origin' => 'https://google.ro']);
-
-        $this->pusherServer->onOpen($connection);
-
-        $connection->assertSentEvent('pusher:connection_established');
-    }
-
-    /** @test */
-    public function origin_validation_should_pass_for_the_right_origin()
-    {
-        $connection = $this->getWebSocketConnection('TestOrigin', ['Origin' => 'https://test.origin.com']);
-
-        $this->pusherServer->onOpen($connection);
-
-        $connection->assertSentEvent('pusher:connection_established');
     }
 }

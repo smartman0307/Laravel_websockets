@@ -2,14 +2,15 @@
 
 namespace BeyondCode\LaravelWebSockets;
 
-use BeyondCode\LaravelWebSockets\Apps\AppManager;
+use BeyondCode\LaravelWebSockets\Apps\AppProvider;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\AuthenticateDashboard;
+use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\DashboardApiController;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\SendMessage;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\ShowDashboard;
-use BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers\ShowStatistics;
 use BeyondCode\LaravelWebSockets\Dashboard\Http\Middleware\Authorize as AuthorizeDashboard;
 use BeyondCode\LaravelWebSockets\Server\Router;
-use BeyondCode\LaravelWebSockets\Statistics\Drivers\StatisticsDriver;
+use BeyondCode\LaravelWebSockets\Statistics\Http\Controllers\WebSocketStatisticsEntriesController;
+use BeyondCode\LaravelWebSockets\Statistics\Http\Middleware\Authorize as AuthorizeStatistics;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManagers\ArrayChannelManager;
 use Illuminate\Support\Facades\Gate;
@@ -18,11 +19,6 @@ use Illuminate\Support\ServiceProvider;
 
 class WebSocketsServiceProvider extends ServiceProvider
 {
-    /**
-     * Boot the service provider.
-     *
-     * @return void
-     */
     public function boot()
     {
         $this->publishes([
@@ -33,7 +29,8 @@ class WebSocketsServiceProvider extends ServiceProvider
             __DIR__.'/../database/migrations/0000_00_00_000000_create_websockets_statistics_entries_table.php' => database_path('migrations/0000_00_00_000000_create_websockets_statistics_entries_table.php'),
         ], 'migrations');
 
-        $this->registerDashboardRoutes()
+        $this
+            ->registerRoutes()
             ->registerDashboardGate();
 
         $this->loadViewsFrom(__DIR__.'/../resources/views/', 'websockets');
@@ -45,11 +42,6 @@ class WebSocketsServiceProvider extends ServiceProvider
         ]);
     }
 
-    /**
-     * Register the service provider.
-     *
-     * @return void
-     */
     public function register()
     {
         $this->mergeConfigFrom(__DIR__.'/../config/websockets.php', 'websockets');
@@ -59,59 +51,37 @@ class WebSocketsServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(ChannelManager::class, function () {
-            $replicationDriver = config('websockets.replication.driver', 'local');
-
-            $class = config("websockets.replication.{$replicationDriver}.channel_manager", ArrayChannelManager::class);
-
-            return new $class;
+            return config('websockets.channel_manager') !== null && class_exists(config('websockets.channel_manager'))
+                ? app(config('websockets.channel_manager')) : new ArrayChannelManager();
         });
 
-        $this->app->singleton(AppManager::class, function () {
-            return $this->app->make(config('websockets.managers.app'));
-        });
-
-        $this->app->singleton(StatisticsDriver::class, function () {
-            $driver = config('websockets.statistics.driver', 'local');
-
-            return $this->app->make(
-                config(
-                    "websockets.statistics.{$driver}.driver",
-                    \BeyondCode\LaravelWebSockets\Statistics\Drivers\DatabaseDriver::class
-                )
-            );
+        $this->app->singleton(AppProvider::class, function () {
+            return app(config('websockets.app_provider'));
         });
     }
 
-    /**
-     * Register the dashboard routes.
-     *
-     * @return void
-     */
-    protected function registerDashboardRoutes()
+    protected function registerRoutes()
     {
-        Route::group([
-            'prefix' => config('websockets.dashboard.path'),
-            'as' => 'laravel-websockets.',
-            'middleware' => config('websockets.dashboard.middleware', [AuthorizeDashboard::class]),
-        ], function () {
-            Route::get('/', ShowDashboard::class)->name('dashboard');
-            Route::get('/api/{appId}/statistics', ShowStatistics::class)->name('statistics');
-            Route::post('/auth', AuthenticateDashboard::class)->name('auth');
-            Route::post('/event', SendMessage::class)->name('event');
+        Route::prefix(config('websockets.path'))->group(function () {
+            Route::middleware(config('websockets.middleware', [AuthorizeDashboard::class]))->group(function () {
+                Route::get('/', ShowDashboard::class);
+                Route::get('/api/{appId}/statistics', [DashboardApiController::class,  'getStatistics']);
+                Route::post('auth', AuthenticateDashboard::class);
+                Route::post('event', SendMessage::class);
+            });
+
+            Route::middleware(AuthorizeStatistics::class)->group(function () {
+                Route::post('statistics', [WebSocketStatisticsEntriesController::class, 'store']);
+            });
         });
 
         return $this;
     }
 
-    /**
-     * Register the dashboard gate.
-     *
-     * @return void
-     */
     protected function registerDashboardGate()
     {
         Gate::define('viewWebSocketsDashboard', function ($user = null) {
-            return $this->app->environment('local');
+            return app()->environment('local');
         });
 
         return $this;

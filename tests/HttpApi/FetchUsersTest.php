@@ -87,8 +87,6 @@ class FetchUsersTest extends TestCase
     /** @test */
     public function it_returns_connected_user_information()
     {
-        $this->skipOnRedisReplication();
-
         $this->joinPresenceChannel('presence-channel');
 
         $connection = new Connection();
