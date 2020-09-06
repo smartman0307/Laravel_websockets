@@ -2,13 +2,21 @@
 
 namespace BeyondCode\LaravelWebSockets\HttpApi\Controllers;
 
+use BeyondCode\LaravelWebSockets\WebSockets\Channels\PresenceChannel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use stdClass;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class FetchChannelsController extends Controller
 {
+    /**
+     * Handle the incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function __invoke(Request $request)
     {
         $attributes = [];
@@ -29,15 +37,31 @@ class FetchChannelsController extends Controller
             });
         }
 
-        return [
-            'channels' => $channels->map(function ($channel) use ($attributes) {
-                $info = new \stdClass;
-                if (in_array('user_count', $attributes)) {
-                    $info->user_count = count($channel->getUsers());
-                }
+        // We want to get the channel user count all in one shot when
+        // using a replication backend rather than doing individual queries.
+        // To do so, we first collect the list of channel names.
+        $channelNames = $channels->map(function (PresenceChannel $channel) {
+            return $channel->getChannelName();
+        })->toArray();
 
-                return $info;
-            })->toArray() ?: new \stdClass,
-        ];
+        // We ask the replication backend to get us the member count per channel.
+        // We get $counts back as a key-value array of channel names and their member count.
+        return $this->replicator
+            ->channelMemberCounts($request->appId, $channelNames)
+            ->then(function (array $counts) use ($channels, $attributes) {
+                $channels = $channels->map(function (PresenceChannel $channel) use ($counts, $attributes) {
+                    $info = new stdClass;
+
+                    if (in_array('user_count', $attributes)) {
+                        $info->user_count = $counts[$channel->getChannelName()];
+                    }
+
+                    return $info;
+                })->toArray();
+
+                return [
+                    'channels' => $channels ?: new stdClass,
+                ];
+            });
     }
 }

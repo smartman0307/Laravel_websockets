@@ -3,6 +3,7 @@
 namespace BeyondCode\LaravelWebSockets\HttpApi\Controllers;
 
 use BeyondCode\LaravelWebSockets\Apps\App;
+use BeyondCode\LaravelWebSockets\PubSub\ReplicationInterface;
 use BeyondCode\LaravelWebSockets\QueryParameters;
 use BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager;
 use Exception;
@@ -16,28 +17,68 @@ use Psr\Http\Message\RequestInterface;
 use Pusher\Pusher;
 use Ratchet\ConnectionInterface;
 use Ratchet\Http\HttpServerInterface;
+use React\Promise\PromiseInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 abstract class Controller implements HttpServerInterface
 {
-    /** @var string */
+    /**
+     * The request buffer.
+     *
+     * @var string
+     */
     protected $requestBuffer = '';
 
-    /** @var RequestInterface */
+    /**
+     * The incoming request.
+     *
+     * @var \Psr\Http\Message\RequestInterface
+     */
     protected $request;
 
-    /** @var int */
+    /**
+     * The content length that will
+     * be calculated.
+     *
+     * @var int
+     */
     protected $contentLength;
 
-    /** @var \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager */
+    /**
+     * The channel manager.
+     *
+     * @var \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager
+     */
     protected $channelManager;
 
-    public function __construct(ChannelManager $channelManager)
+    /**
+     * The replicator driver.
+     *
+     * @var \BeyondCode\LaravelWebSockets\PubSub\ReplicationInterface
+     */
+    protected $replicator;
+
+    /**
+     * Initialize the request.
+     *
+     * @param  \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager  $channelManager
+     * @param  \BeyondCode\LaravelWebSockets\PubSub\ReplicationInterface  $replicator
+     * @return void
+     */
+    public function __construct(ChannelManager $channelManager, ReplicationInterface $replicator)
     {
         $this->channelManager = $channelManager;
+        $this->replicator = $replicator;
     }
 
+    /**
+     * Handle the opened socket connection.
+     *
+     * @param  \Ratchet\ConnectionInterface  $connection
+     * @param  \Psr\Http\Message\RequestInterface  $request
+     * @return void
+     */
     public function onOpen(ConnectionInterface $connection, RequestInterface $request = null)
     {
         $this->request = $request;
@@ -46,51 +87,49 @@ abstract class Controller implements HttpServerInterface
 
         $this->requestBuffer = (string) $request->getBody();
 
-        $this->checkContentLength($connection);
+        if (! $this->verifyContentLength()) {
+            return;
+        }
+
+        $this->handleRequest($connection);
     }
 
-    protected function findContentLength(array $headers): int
-    {
-        return Collection::make($headers)->first(function ($values, $header) {
-            return strtolower($header) === 'content-length';
-        })[0] ?? 0;
-    }
-
+    /**
+     * Handle the oncoming message and add it to buffer.
+     *
+     * @param  \Ratchet\ConnectionInterface  $from
+     * @param  mixed  $msg
+     * @return void
+     */
     public function onMessage(ConnectionInterface $from, $msg)
     {
         $this->requestBuffer .= $msg;
 
-        $this->checkContentLength($from);
-    }
-
-    protected function checkContentLength(ConnectionInterface $connection)
-    {
-        if (strlen($this->requestBuffer) === $this->contentLength) {
-            $serverRequest = (new ServerRequest(
-                $this->request->getMethod(),
-                $this->request->getUri(),
-                $this->request->getHeaders(),
-                $this->requestBuffer,
-                $this->request->getProtocolVersion()
-            ))->withQueryParams(QueryParameters::create($this->request)->all());
-
-            $laravelRequest = Request::createFromBase((new HttpFoundationFactory)->createRequest($serverRequest));
-
-            $this
-                ->ensureValidAppId($laravelRequest->appId)
-                ->ensureValidSignature($laravelRequest);
-
-            $response = $this($laravelRequest);
-
-            $connection->send(JsonResponse::create($response));
-            $connection->close();
+        if (! $this->verifyContentLength()) {
+            return;
         }
+
+        $this->handleRequest($from);
     }
 
+    /**
+     * Handle the socket closing.
+     *
+     * @param  \Ratchet\ConnectionInterface  $connection
+     * @return void
+     */
     public function onClose(ConnectionInterface $connection)
     {
+        //
     }
 
+    /**
+     * Handle the errors.
+     *
+     * @param  \Ratchet\ConnectionInterface  $connection
+     * @param  Exception  $exception
+     * @return void
+     */
     public function onError(ConnectionInterface $connection, Exception $exception)
     {
         if (! $exception instanceof HttpException) {
@@ -103,12 +142,89 @@ abstract class Controller implements HttpServerInterface
             'error' => $exception->getMessage(),
         ]));
 
-        $connection->send(\GuzzleHttp\Psr7\str($response));
-
-        $connection->close();
+        tap($connection)->send(\GuzzleHttp\Psr7\str($response))->close();
     }
 
-    public function ensureValidAppId(string $appId)
+    /**
+     * Get the content length from the headers.
+     *
+     * @param  array  $headers
+     * @return int
+     */
+    protected function findContentLength(array $headers): int
+    {
+        return Collection::make($headers)->first(function ($values, $header) {
+            return strtolower($header) === 'content-length';
+        })[0] ?? 0;
+    }
+
+    /**
+     * Check the content length.
+     *
+     * @return bool
+     */
+    protected function verifyContentLength()
+    {
+        return strlen($this->requestBuffer) === $this->contentLength;
+    }
+
+    /**
+     * Handle the oncoming connection.
+     *
+     * @param  \Ratchet\ConnectionInterface  $connection
+     * @return void
+     */
+    protected function handleRequest(ConnectionInterface $connection)
+    {
+        $serverRequest = (new ServerRequest(
+            $this->request->getMethod(),
+            $this->request->getUri(),
+            $this->request->getHeaders(),
+            $this->requestBuffer,
+            $this->request->getProtocolVersion()
+        ))->withQueryParams(QueryParameters::create($this->request)->all());
+
+        $laravelRequest = Request::createFromBase((new HttpFoundationFactory)->createRequest($serverRequest));
+
+        $this
+            ->ensureValidAppId($laravelRequest->appId)
+            ->ensureValidSignature($laravelRequest);
+
+        // Invoke the controller action
+        $response = $this($laravelRequest);
+
+        // Allow for async IO in the controller action
+        if ($response instanceof PromiseInterface) {
+            $response->then(function ($response) use ($connection) {
+                $this->sendAndClose($connection, $response);
+            });
+
+            return;
+        }
+
+        $this->sendAndClose($connection, $response);
+    }
+
+    /**
+     * Send the response and close the connection.
+     *
+     * @param  \Ratchet\ConnectionInterface  $connection
+     * @param  mixed  $response
+     * @return void
+     */
+    protected function sendAndClose(ConnectionInterface $connection, $response)
+    {
+        tap($connection)->send(JsonResponse::create($response))->close();
+    }
+
+    /**
+     * Ensure app existence.
+     *
+     * @param  mixed  $appId
+     * @return $this
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     */
+    public function ensureValidAppId($appId)
     {
         if (! App::findById($appId)) {
             throw new HttpException(401, "Unknown app id `{$appId}` provided.");
@@ -117,12 +233,19 @@ abstract class Controller implements HttpServerInterface
         return $this;
     }
 
+    /**
+     * Ensure signature integrity coming from an
+     * authorized application.
+     *
+     * @param  \GuzzleHttp\Psr7\ServerRequest  $request
+     * @return $this
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     */
     protected function ensureValidSignature(Request $request)
     {
         /*
          * The `auth_signature` & `body_md5` parameters are not included when calculating the `auth_signature` value.
-         *
-         * The `appId`, `appKey` & `channelName` parameters are actually route paramaters and are never supplied by the client.
+         * The `appId`, `appKey` & `channelName` parameters are actually route parameters and are never supplied by the client.
          */
         $params = Arr::except($request->query(), ['auth_signature', 'body_md5', 'appId', 'appKey', 'channelName']);
 
@@ -143,5 +266,11 @@ abstract class Controller implements HttpServerInterface
         return $this;
     }
 
+    /**
+     * Handle the incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return void
+     */
     abstract public function __invoke(Request $request);
 }

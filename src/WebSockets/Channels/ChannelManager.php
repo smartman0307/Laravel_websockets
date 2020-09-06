@@ -6,13 +6,53 @@ use Ratchet\ConnectionInterface;
 
 interface ChannelManager
 {
-    public function findOrCreate(string $appId, string $channelName): Channel;
+    /**
+     * Find a channel by name or create one.
+     *
+     * @param  mixed  $appId
+     * @param  string  $channelName
+     * @return \BeyondCode\LaravelWebSockets\WebSockets\Channels\Channel
+     */
+    public function findOrCreate($appId, string $channelName): Channel;
 
-    public function find(string $appId, string $channelName): ?Channel;
+    /**
+     * Find a channel by name.
+     *
+     * @param  mixed  $appId
+     * @param  string  $channelName
+     * @return \BeyondCode\LaravelWebSockets\WebSockets\Channels\Channel
+     */
+    public function find($appId, string $channelName): ?Channel;
 
-    public function getChannels(string $appId): array;
+    /**
+     * Get all channels.
+     *
+     * @param  mixed  $appId
+     * @return array
+     */
+    public function getChannels($appId): array;
 
-    public function getConnectionCount(string $appId): int;
+    /**
+     * Get the connections count on the app.
+     *
+     * @param  mixed  $appId
+     * @return int|\React\Promise\PromiseInterface
+     */
+    public function getLocalConnectionsCount($appId): int;
 
+    /**
+     * Get the connections count across multiple servers.
+     *
+     * @param  mixed  $appId
+     * @return int|\React\Promise\PromiseInterface
+     */
+    public function getGlobalConnectionsCount($appId);
+
+    /**
+     * Remove connection from all channels.
+     *
+     * @param  \Ratchet\ConnectionInterface  $connection
+     * @return void
+     */
     public function removeFromAllChannels(ConnectionInterface $connection);
 }
