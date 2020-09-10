@@ -9,34 +9,15 @@ use stdClass;
 
 class PusherChannelProtocolMessage implements PusherMessage
 {
-    /**
-     * The payload to send.
-     *
-     * @var \stdClass
-     */
+    /** @var \stdClass */
     protected $payload;
 
-    /**
-     * The socket connection.
-     *
-     * @var \Ratchet\ConnectionInterface
-     */
+    /** @var \React\Socket\ConnectionInterface */
     protected $connection;
 
-    /**
-     * The channel manager.
-     *
-     * @var ChannelManager
-     */
+    /** @var \BeyondCode\LaravelWebSockets\WebSockets\Channels\ChannelManager */
     protected $channelManager;
 
-    /**
-     * Create a new instance.
-     *
-     * @param  \stdClass  $payload
-     * @param  \Ratchet\ConnectionInterface  $connection
-     * @param  ChannelManager  $channelManager
-     */
     public function __construct(stdClass $payload, ConnectionInterface $connection, ChannelManager $channelManager)
     {
         $this->payload = $payload;
@@ -46,11 +27,6 @@ class PusherChannelProtocolMessage implements PusherMessage
         $this->channelManager = $channelManager;
     }
 
-    /**
-     * Respond with the payload.
-     *
-     * @return void
-     */
     public function respond()
     {
         $eventName = Str::camel(Str::after($this->payload->event, ':'));
@@ -60,12 +36,8 @@ class PusherChannelProtocolMessage implements PusherMessage
         }
     }
 
-    /**
-     * Ping the connection.
-     *
-     * @see    https://pusher.com/docs/pusher_protocol#ping-pong
-     * @param  \Ratchet\ConnectionInterface  $connection
-     * @return void
+    /*
+     * @link https://pusher.com/docs/pusher_protocol#ping-pong
      */
     protected function ping(ConnectionInterface $connection)
     {
@@ -74,13 +46,8 @@ class PusherChannelProtocolMessage implements PusherMessage
         ]));
     }
 
-    /**
-     * Subscribe to channel.
-     *
-     * @see    https://pusher.com/docs/pusher_protocol#pusher-subscribe
-     * @param  \Ratchet\ConnectionInterface  $connection
-     * @param  \stdClass  $payload
-     * @return void
+    /*
+     * @link https://pusher.com/docs/pusher_protocol#pusher-subscribe
      */
     protected function subscribe(ConnectionInterface $connection, stdClass $payload)
     {
@@ -89,13 +56,6 @@ class PusherChannelProtocolMessage implements PusherMessage
         $channel->subscribe($connection, $payload);
     }
 
-    /**
-     * Unsubscribe from the channel.
-     *
-     * @param  \Ratchet\ConnectionInterface  $connection
-     * @param  \stdClass  $payload
-     * @return void
-     */
     public function unsubscribe(ConnectionInterface $connection, stdClass $payload)
     {
         $channel = $this->channelManager->findOrCreate($connection->app->id, $payload->channel);

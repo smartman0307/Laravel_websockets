@@ -37,8 +37,6 @@ class FetchChannelsTest extends TestCase
     /** @test */
     public function it_returns_the_channel_information()
     {
-        $this->skipOnRedisReplication();
-
         $this->joinPresenceChannel('presence-channel');
 
         $connection = new Connection();
@@ -69,8 +67,6 @@ class FetchChannelsTest extends TestCase
     /** @test */
     public function it_returns_the_channel_information_for_prefix()
     {
-        $this->skipOnRedisReplication();
-
         $this->joinPresenceChannel('presence-global.1');
         $this->joinPresenceChannel('presence-global.1');
         $this->joinPresenceChannel('presence-global.2');
@@ -107,8 +103,6 @@ class FetchChannelsTest extends TestCase
     /** @test */
     public function it_returns_the_channel_information_for_prefix_with_user_count()
     {
-        $this->skipOnRedisReplication();
-
         $this->joinPresenceChannel('presence-global.1');
         $this->joinPresenceChannel('presence-global.1');
         $this->joinPresenceChannel('presence-global.2');
@@ -177,8 +171,6 @@ class FetchChannelsTest extends TestCase
     /** @test */
     public function it_returns_empty_object_for_no_channels_found()
     {
-        $this->skipOnRedisReplication();
-
         $connection = new Connection();
 
         $requestPath = '/apps/1234/channels';

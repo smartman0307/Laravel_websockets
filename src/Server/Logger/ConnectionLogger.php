@@ -6,19 +6,9 @@ use Ratchet\ConnectionInterface;
 
 class ConnectionLogger extends Logger implements ConnectionInterface
 {
-    /**
-     * The connection to watch.
-     *
-     * @var \Ratchet\ConnectionInterface
-     */
+    /** @var \Ratchet\ConnectionInterface */
     protected $connection;
 
-    /**
-     * Create a new instance and add a connection to watch.
-     *
-     * @param  \Ratchet\ConnectionInterface  $connection
-     * @return self
-     */
     public static function decorate(ConnectionInterface $app): self
     {
         $logger = app(self::class);
@@ -26,12 +16,6 @@ class ConnectionLogger extends Logger implements ConnectionInterface
         return $logger->setConnection($app);
     }
 
-    /**
-     * Set a new connection to watch.
-     *
-     * @param  \Ratchet\ConnectionInterface  $connection
-     * @return $this
-     */
     public function setConnection(ConnectionInterface $connection)
     {
         $this->connection = $connection;
@@ -39,12 +23,11 @@ class ConnectionLogger extends Logger implements ConnectionInterface
         return $this;
     }
 
-    /**
-     * Send data through the connection.
-     *
-     * @param  mixed  $data
-     * @return void
-     */
+    protected function getConnection()
+    {
+        return $this->connection;
+    }
+
     public function send($data)
     {
         $socketId = $this->connection->socketId ?? null;
@@ -54,11 +37,6 @@ class ConnectionLogger extends Logger implements ConnectionInterface
         $this->connection->send($data);
     }
 
-    /**
-     * Close the connection.
-     *
-     * @return void
-     */
     public function close()
     {
         $this->warn("Connection id {$this->connection->socketId} closing.");
@@ -66,33 +44,21 @@ class ConnectionLogger extends Logger implements ConnectionInterface
         $this->connection->close();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function __set($name, $value)
     {
         return $this->connection->$name = $value;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function __get($name)
     {
         return $this->connection->$name;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function __isset($name)
     {
         return isset($this->connection->$name);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function __unset($name)
     {
         unset($this->connection->$name);

@@ -11,9 +11,9 @@ class AppTest extends TestCase
     /** @test */
     public function it_can_create_a_client()
     {
-        new App(1, 'appKey', 'appSecret');
+        new App(1, 'appKey', 'appSecret', 'new');
 
-        $this->assertTrue(true);
+        $this->markTestAsPassed();
     }
 
     /** @test */
@@ -21,7 +21,7 @@ class AppTest extends TestCase
     {
         $this->expectException(InvalidApp::class);
 
-        new App(1, '', 'appSecret');
+        new App(1, '', 'appSecret', 'new');
     }
 
     /** @test */
@@ -29,6 +29,6 @@ class AppTest extends TestCase
     {
         $this->expectException(InvalidApp::class);
 
-        new App(1, 'appKey', '');
+        new App(1, 'appKey', '', 'new');
     }
 }

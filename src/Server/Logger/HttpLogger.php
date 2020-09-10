@@ -8,19 +8,9 @@ use Ratchet\MessageComponentInterface;
 
 class HttpLogger extends Logger implements MessageComponentInterface
 {
-    /**
-     * The HTTP app instance to watch.
-     *
-     * @var \Ratchet\Http\HttpServerInterface
-     */
+    /** @var \Ratchet\Http\HttpServerInterface */
     protected $app;
 
-    /**
-     * Create a new instance and add the app to watch.
-     *
-     * @param  \Ratchet\MessageComponentInterface  $app
-     * @return self
-     */
     public static function decorate(MessageComponentInterface $app): self
     {
         $logger = app(self::class);
@@ -28,12 +18,6 @@ class HttpLogger extends Logger implements MessageComponentInterface
         return $logger->setApp($app);
     }
 
-    /**
-     * Set a new app to watch.
-     *
-     * @param  \Ratchet\MessageComponentInterface  $app
-     * @return $this
-     */
     public function setApp(MessageComponentInterface $app)
     {
         $this->app = $app;
@@ -41,47 +25,21 @@ class HttpLogger extends Logger implements MessageComponentInterface
         return $this;
     }
 
-    /**
-     * Handle the HTTP open request.
-     *
-     * @param  \Ratchet\ConnectionInterface  $connection
-     * @return void
-     */
     public function onOpen(ConnectionInterface $connection)
     {
         $this->app->onOpen($connection);
     }
 
-    /**
-     * Handle the HTTP message request.
-     *
-     * @param  \Ratchet\ConnectionInterface  $connection
-     * @param  mixed  $message
-     * @return void
-     */
     public function onMessage(ConnectionInterface $connection, $message)
     {
         $this->app->onMessage($connection, $message);
     }
 
-    /**
-     * Handle the HTTP close request.
-     *
-     * @param  \Ratchet\ConnectionInterface  $connection
-     * @return void
-     */
     public function onClose(ConnectionInterface $connection)
     {
         $this->app->onClose($connection);
     }
 
-    /**
-     * Handle HTTP errors.
-     *
-     * @param  \Ratchet\ConnectionInterface  $connection
-     * @param  Exception  $exception
-     * @return void
-     */
     public function onError(ConnectionInterface $connection, Exception $exception)
     {
         $exceptionClass = get_class($exception);

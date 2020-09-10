@@ -12,13 +12,13 @@ class PusherClientMessageTest extends TestCase
     {
         $connection = $this->getConnectedWebSocketConnection(['test-channel']);
 
-        $message = new Message([
+        $message = new Message(json_encode([
             'event' => 'client-test',
             'channel' => 'test-channel',
             'data' => [
                 'client-event' => 'test',
             ],
-        ]);
+        ]));
 
         $this->pusherServer->onMessage($connection, $message);
 
@@ -42,13 +42,13 @@ class PusherClientMessageTest extends TestCase
         $connection1 = $this->getConnectedWebSocketConnection(['test-channel']);
         $connection2 = $this->getConnectedWebSocketConnection(['test-channel']);
 
-        $message = new Message([
+        $message = new Message(json_encode([
             'event' => 'client-test',
             'channel' => 'test-channel',
             'data' => [
                 'client-event' => 'test',
             ],
-        ]);
+        ]));
 
         $this->pusherServer->onMessage($connection1, $message);
 
