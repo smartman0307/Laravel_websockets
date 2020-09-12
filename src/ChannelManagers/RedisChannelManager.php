@@ -68,17 +68,6 @@ class RedisChannelManager extends LocalChannelManager
     }
 
     /**
-     * Get the local connections, regardless of the channel
-     * they are connected to.
-     *
-     * @return \React\Promise\PromiseInterface
-     */
-    public function getLocalConnections(): PromiseInterface
-    {
-        return parent::getLocalConnections();
-    }
-
-    /**
      * Get all channels for a specific app
      * for the current instance.
      *
@@ -119,9 +108,9 @@ class RedisChannelManager extends LocalChannelManager
                         $connection, $channel, new stdClass
                     );
                 }
-            })->then(function () use ($connection) {
-                parent::unsubscribeFromAllChannels($connection);
             });
+
+        parent::unsubscribeFromAllChannels($connection);
     }
 
     /**
