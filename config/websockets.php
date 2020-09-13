@@ -267,8 +267,6 @@ return [
 
         'websocket' => \BeyondCode\LaravelWebSockets\Server\WebSocketHandler::class,
 
-        'health' => \BeyondCode\LaravelWebSockets\Server\HealthHandler::class,
-
         'trigger_event' => \BeyondCode\LaravelWebSockets\API\TriggerEvent::class,
 
         'fetch_channels' => \BeyondCode\LaravelWebSockets\API\FetchChannels::class,
