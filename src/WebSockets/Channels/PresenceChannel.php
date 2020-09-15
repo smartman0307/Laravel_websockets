@@ -63,9 +63,9 @@ class PresenceChannel extends Channel
     {
         return [
             'presence' => [
-                'ids' => $userIds = $this->getUserIds(),
+                'ids' => $this->getUserIds(),
                 'hash' => $this->getHash(),
-                'count' => count($userIds),
+                'count' => count($this->users),
             ],
         ];
     }
@@ -73,7 +73,7 @@ class PresenceChannel extends Channel
     public function toArray(): array
     {
         return array_merge(parent::toArray(), [
-            'user_count' => count($this->getUserIds()),
+            'user_count' => count($this->users),
         ]);
     }
 
@@ -83,7 +83,7 @@ class PresenceChannel extends Channel
             return (string) $channelData->user_id;
         }, $this->users);
 
-        return array_values(array_unique($userIds));
+        return array_values($userIds);
     }
 
     /**
