@@ -2,42 +2,56 @@
 
 namespace BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers;
 
-use BeyondCode\LaravelWebSockets\Statistics\Rules\AppId;
-use Illuminate\Broadcasting\Broadcasters\PusherBroadcaster;
+use BeyondCode\LaravelWebSockets\Contracts\ChannelManager;
+use BeyondCode\LaravelWebSockets\Rules\AppId;
 use Illuminate\Http\Request;
-use Pusher\Pusher;
 
 class SendMessage
 {
-    public function __invoke(Request $request)
+    /**
+     * Send the message to the requested channel.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \BeyondCode\LaravelWebSockets\Contracts\ChannelManager  $channelManager
+     * @return \Illuminate\Http\Response
+     */
+    public function __invoke(Request $request, ChannelManager $channelManager)
     {
-        $validated = $request->validate([
-            'appId' => ['required', new AppId()],
-            'key' => 'required',
-            'secret' => 'required',
-            'channel' => 'required',
-            'event' => 'required',
-            'data' => 'json',
+        $request->validate([
+            'appId' => ['required', new AppId],
+            'channel' => 'required|string',
+            'event' => 'required|string',
+            'data' => 'required|json',
         ]);
 
-        $this->getPusherBroadcaster($validated)->broadcast(
-            [$validated['channel']],
-            $validated['event'],
-            json_decode($validated['data'], true)
+        $payload = [
+            'channel' => $request->channel,
+            'event' => $request->event,
+            'data' => json_decode($request->data, true),
+        ];
+
+        // Here you can use the ->find(), even if the channel
+        // does not exist on the server. If it does not exist,
+        // then the message simply will get broadcasted
+        // across the other servers.
+        $channel = $channelManager->find(
+            $request->appId, $request->channel
         );
 
-        return 'ok';
-    }
+        if ($channel) {
+            $channel->broadcastToEveryoneExcept(
+                (object) $payload,
+                null,
+                $request->appId
+            );
+        } else {
+            $channelManager->broadcastAcrossServers(
+                $request->appId, $request->channel, (object) $payload
+            );
+        }
 
-    protected function getPusherBroadcaster(array $validated): PusherBroadcaster
-    {
-        $pusher = new Pusher(
-            $validated['key'],
-            $validated['secret'],
-            $validated['appId'],
-            config('broadcasting.connections.pusher.options', [])
-        );
-
-        return new PusherBroadcaster($pusher);
+        return response()->json([
+            'ok' => true,
+        ]);
     }
 }
