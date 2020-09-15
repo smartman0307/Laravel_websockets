@@ -1,36 +1,18 @@
 <?php
 
-namespace BeyondCode\LaravelWebSockets\Test\Mocks;
+namespace BeyondCode\LaravelWebSockets\Tests\Mocks;
 
-use Ratchet\RFC6455\Messaging\Message as BaseMessage;
-
-class Message extends BaseMessage
+class Message extends \Ratchet\RFC6455\Messaging\Message
 {
-    /**
-     * The payload as array.
-     *
-     * @var array
-     */
     protected $payload;
 
-    /**
-     * Create a new message instance.
-     *
-     * @param  array  $payload
-     * @return void
-     */
-    public function __construct(array $payload)
+    public function __construct($payload)
     {
         $this->payload = $payload;
     }
 
-    /**
-     * Get the payload as json-encoded string.
-     *
-     * @return string
-     */
-    public function getPayload(): string
+    public function getPayload()
     {
-        return json_encode($this->payload);
+        return $this->payload;
     }
 }
