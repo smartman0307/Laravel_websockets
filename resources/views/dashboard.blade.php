@@ -261,15 +261,15 @@
     },
     destroyed () {
       if (this.refreshTicker) {
-        this.clearRefreshInterval();
+        this.stopRefreshInterval();
       }
     },
     watch: {
       connected (newVal) {
-        newVal ? this.startRefreshInterval() : this.clearRefreshInterval();
+        newVal ? this.startRefreshInterval() : this.stopRefreshInterval();
       },
       autoRefresh (newVal) {
-        newVal ? this.startRefreshInterval() : this.clearRefreshInterval();
+        newVal ? this.startRefreshInterval() : this.stopRefreshInterval();
       },
     },
     methods: {
@@ -314,7 +314,7 @@
         });
 
         this.pusher.connection.bind('error', event => {
-          if (event.data.code === 4100) {
+          if (event.error.data.code === 4100) {
             this.connected = false;
             this.logs = [];
             this.chart = null;
