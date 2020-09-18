@@ -2,55 +2,42 @@
 
 namespace BeyondCode\LaravelWebSockets\Dashboard\Http\Controllers;
 
-use BeyondCode\LaravelWebSockets\Concerns\PushesToPusher;
-use BeyondCode\LaravelWebSockets\Rules\AppId;
-use Exception;
+use BeyondCode\LaravelWebSockets\Statistics\Rules\AppId;
+use Illuminate\Broadcasting\Broadcasters\PusherBroadcaster;
 use Illuminate\Http\Request;
+use Pusher\Pusher;
 
 class SendMessage
 {
-    use PushesToPusher;
-
-    /**
-     * Send the message to the requested channel.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function __invoke(Request $request)
     {
-        $request->validate([
-            'appId' => ['required', new AppId],
-            'key' => 'required|string',
-            'secret' => 'required|string',
-            'event' => 'required|string',
-            'channel' => 'required|string',
-            'data' => 'required|json',
+        $validated = $request->validate([
+            'appId' => ['required', new AppId()],
+            'key' => 'required',
+            'secret' => 'required',
+            'channel' => 'required',
+            'event' => 'required',
+            'data' => 'json',
         ]);
 
-        $broadcaster = $this->getPusherBroadcaster([
-            'key' => $request->key,
-            'secret' => $request->secret,
-            'id' => $request->appId,
-        ]);
+        $this->getPusherBroadcaster($validated)->broadcast(
+            [$validated['channel']],
+            $validated['event'],
+            json_decode($validated['data'], true)
+        );
 
-        try {
-            $decodedData = json_decode($request->data, true);
+        return 'ok';
+    }
 
-            $broadcaster->broadcast(
-                [$request->channel],
-                $request->event,
-                $decodedData ?: []
-            );
-        } catch (Exception $e) {
-            return response()->json([
-                'ok' => false,
-                'exception' => $e->getMessage(),
-            ]);
-        }
+    protected function getPusherBroadcaster(array $validated): PusherBroadcaster
+    {
+        $pusher = new Pusher(
+            $validated['key'],
+            $validated['secret'],
+            $validated['appId'],
+            config('broadcasting.connections.pusher.options', [])
+        );
 
-        return response()->json([
-            'ok' => true,
-        ]);
+        return new PusherBroadcaster($pusher);
     }
 }
