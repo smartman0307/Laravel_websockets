@@ -3,6 +3,7 @@
 namespace BeyondCode\LaravelWebSockets\Test;
 
 use BeyondCode\LaravelWebSockets\API\TriggerEvent;
+use Carbon\Carbon;
 use GuzzleHttp\Psr7\Request;
 use Illuminate\Http\JsonResponse;
 use Pusher\Pusher;
