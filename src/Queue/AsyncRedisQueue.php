@@ -3,6 +3,7 @@
 namespace BeyondCode\LaravelWebSockets\Queue;
 
 use BeyondCode\LaravelWebSockets\Contracts\ChannelManager;
+use Illuminate\Contracts\Redis\Factory as Redis;
 use Illuminate\Queue\RedisQueue;
 
 class AsyncRedisQueue extends RedisQueue
@@ -14,7 +15,7 @@ class AsyncRedisQueue extends RedisQueue
      */
     public function getConnection()
     {
-        $channelManager = $this->container->bound(ChannelManager::class)
+        $channelManager = $this->container->bound(ChannelManager::Class)
             ? $this->container->make(ChannelManager::class)
             : null;
 
