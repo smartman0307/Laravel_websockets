@@ -4,10 +4,9 @@ namespace BeyondCode\LaravelWebSockets\Test;
 
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Redis\Factory;
-use Illuminate\Queue\LuaScripts;
+use Illuminate\Queue\Jobs\RedisJob;
 use Illuminate\Queue\Queue;
 use Illuminate\Queue\RedisQueue;
-use Illuminate\Queue\Jobs\RedisJob;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Mockery as m;
