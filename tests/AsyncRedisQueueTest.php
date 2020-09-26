@@ -3,15 +3,9 @@
 namespace BeyondCode\LaravelWebSockets\Test;
 
 use BeyondCode\LaravelWebSockets\Queue\AsyncRedisQueue;
-use Illuminate\Container\Container;
-use Illuminate\Contracts\Redis\Factory;
-use Illuminate\Queue\Jobs\RedisJob;
 use Illuminate\Queue\Queue;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\InteractsWithTime;
-use Illuminate\Support\Str;
 use Mockery as m;
-use stdClass;
 
 class AsyncRedisQueueTest extends TestCase
 {
@@ -144,6 +138,10 @@ class AsyncRedisQueueTest extends TestCase
 
     public function test_clear_job()
     {
+        if (! method_exists($this->queue, 'clear')) {
+            $this->markTestSkipped('The Queue has no clear() method to test.');
+        }
+
         $job1 = new RedisQueueIntegrationTestJob(30);
         $job2 = new RedisQueueIntegrationTestJob(40);
 
