@@ -43,7 +43,8 @@ class MemoryCollector implements StatisticsCollector
      */
     public function webSocketMessage($appId)
     {
-        $this->findOrMake($appId)->webSocketMessage();
+        $this->findOrMake($appId)
+            ->webSocketMessage();
     }
 
     /**
@@ -54,7 +55,8 @@ class MemoryCollector implements StatisticsCollector
      */
     public function apiMessage($appId)
     {
-        $this->findOrMake($appId)->apiMessage();
+        $this->findOrMake($appId)
+            ->apiMessage();
     }
 
     /**
@@ -65,7 +67,8 @@ class MemoryCollector implements StatisticsCollector
      */
     public function connection($appId)
     {
-        $this->findOrMake($appId)->connection();
+        $this->findOrMake($appId)
+            ->connection();
     }
 
     /**
@@ -76,7 +79,8 @@ class MemoryCollector implements StatisticsCollector
      */
     public function disconnection($appId)
     {
-        $this->findOrMake($appId)->disconnection();
+        $this->findOrMake($appId)
+            ->disconnection();
     }
 
     /**
@@ -92,19 +96,15 @@ class MemoryCollector implements StatisticsCollector
                     continue;
                 }
 
-                if ($statistic->shouldHaveTracesRemoved()) {
-                    $this->resetAppTraces($appId);
-
-                    continue;
-                }
-
                 $this->createRecord($statistic, $appId);
 
-                $this->channelManager->getGlobalConnectionsCount($appId)->then(function ($connections) use ($statistic) {
-                    $statistic->reset(
-                        is_null($connections) ? 0 : $connections
-                    );
-                });
+                $this->channelManager
+                    ->getGlobalConnectionsCount($appId)
+                    ->then(function ($connections) use ($statistic) {
+                        $statistic->reset(
+                            is_null($connections) ? 0 : $connections
+                        );
+                    });
             }
         });
     }
@@ -140,18 +140,6 @@ class MemoryCollector implements StatisticsCollector
         return Helpers::createFulfilledPromise(
             $this->statistics[$appId] ?? null
         );
-    }
-
-    /**
-     * Remove all app traces from the database if no connections have been set
-     * in the meanwhile since last save.
-     *
-     * @param  string|int  $appId
-     * @return void
-     */
-    public function resetAppTraces($appId)
-    {
-        unset($this->statistics[$appId]);
     }
 
     /**
