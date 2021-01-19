@@ -10,29 +10,32 @@ Since most of the web's traffic is going through HTTPS, it's also crucial to sec
 ## Configuration
 
 The SSL configuration takes place in your `config/websockets.php` file.
-
 The default configuration has a SSL section that looks like this:
 
 ```php
 'ssl' => [
+    /*
+     * Path to local certificate file on filesystem. It must be a PEM encoded file which
+     * contains your certificate and private key. It can optionally contain the
+     * certificate chain of issuers. The private key also may be contained
+     * in a separate file specified by local_pk.
+     */
+    'local_cert' => null,
 
-    'local_cert' => env('LARAVEL_WEBSOCKETS_SSL_LOCAL_CERT', null),
+    /*
+     * Path to local private key file on filesystem in case of separate files for
+     * certificate (local_cert) and private key.
+     */
+    'local_pk' => null,
 
-    'capath' => env('LARAVEL_WEBSOCKETS_SSL_CA', null),
-
-    'local_pk' => env('LARAVEL_WEBSOCKETS_SSL_LOCAL_PK', null),
-
-    'passphrase' => env('LARAVEL_WEBSOCKETS_SSL_PASSPHRASE', null),
-
-    'verify_peer' => env('APP_ENV') === 'production',
-
-    'allow_self_signed' => env('APP_ENV') !== 'production',
-
+    /*
+     * Passphrase with which your local_cert file was encoded.
+     */
+    'passphrase' => null
 ],
 ```
 
 But this is only a subset of all the available configuration options.
-
 This packages makes use of the official PHP [SSL context options](http://php.net/manual/en/context.ssl.php).
 
 So if you find yourself in the need of adding additional configuration settings, take a look at the PHP documentation and simply add the configuration parameters that you need.
@@ -59,20 +62,13 @@ window.Echo = new Echo({
     wsHost: window.location.hostname,
     wsPort: 6001,
     disableStats: true,
-    forceTLS: true,
-    enabledTransports: ['ws', 'wss'],
+    forceTLS: true
 });
 ```
 
 ## Server configuration
 
-When broadcasting events from your Laravel application to the WebSocket server, you also need to tell Laravel to make use of HTTPS instead of HTTP. You can do this by setting the `PUSHER_APP_SCHEME` variable to `https`
-
-```env
-PUSHER_APP_SCHEME=https
-```
-
-Your connection from `config/broadcasting.php` would look like this:
+When broadcasting events from your Laravel application to the WebSocket server, you also need to tell Laravel to make use of HTTPS instead of HTTP. You can do this by setting the `scheme` option in your `config/broadcasting.php` file to `https`:
 
 ```php
 'pusher' => [
@@ -82,10 +78,9 @@ Your connection from `config/broadcasting.php` would look like this:
     'app_id' => env('PUSHER_APP_ID'),
     'options' => [
         'cluster' => env('PUSHER_APP_CLUSTER'),
-        'encrypted' => true,
-        'host' => env('PUSHER_APP_HOST', '127.0.0.1'),
-        'port' => env('PUSHER_APP_PORT', 6001),
-        'scheme' => env('PUSHER_APP_SCHEME', 'http'),
+        'host' => '127.0.0.1',
+        'port' => 6001,
+        'scheme' => 'https'
     ],
 ],
 ```
@@ -103,19 +98,26 @@ Make sure that you replace `YOUR-USERNAME` with your Mac username and `VALET-SIT
 
 ```php
 'ssl' => [
-
+    /*
+     * Path to local certificate file on filesystem. It must be a PEM encoded file which
+     * contains your certificate and private key. It can optionally contain the
+     * certificate chain of issuers. The private key also may be contained
+     * in a separate file specified by local_pk.
+     */
     'local_cert' => '/Users/YOUR-USERNAME/.config/valet/Certificates/VALET-SITE.TLD.crt',
 
-    'capath' => env('LARAVEL_WEBSOCKETS_SSL_CA', null),
-
+    /*
+     * Path to local private key file on filesystem in case of separate files for
+     * certificate (local_cert) and private key.
+     */
     'local_pk' => '/Users/YOUR-USERNAME/.config/valet/Certificates/VALET-SITE.TLD.key',
 
-    'passphrase' => env('LARAVEL_WEBSOCKETS_SSL_PASSPHRASE', null),
+    /*
+     * Passphrase with which your local_cert file was encoded.
+     */
+    'passphrase' => null,
 
-    'verify_peer' => env('APP_ENV') === 'production',
-
-    'allow_self_signed' => env('APP_ENV') !== 'production',
-
+    'verify_peer' => false,
 ],
 ```
 
@@ -131,14 +133,13 @@ You also need to disable SSL verification.
     'app_id' => env('PUSHER_APP_ID'),
     'options' => [
         'cluster' => env('PUSHER_APP_CLUSTER'),
-        'encrypted' => true,
-        'host' => env('PUSHER_APP_HOST', '127.0.0.1'),
-        'port' => env('PUSHER_APP_PORT', 6001),
-        'scheme' => env('PUSHER_APP_SCHEME', 'http'),
+        'host' => '127.0.0.1',
+        'port' => 6001,
+        'scheme' => 'https',
         'curl_options' => [
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSL_VERIFYPEER => 0,
-        ],
+        ]
     ],
 ],
 ```
@@ -207,7 +208,7 @@ server {
   location / {
     try_files /nonexistent @$type;
   }
-
+  
   location @web {
     try_files $uri $uri/ /index.php?$query_string;
   }
@@ -272,20 +273,28 @@ You know you've reached this limit of your Nginx error logs contain similar mess
 
 Remember to restart your Nginx after you've modified the `worker_connections`.
 
-### Example using Caddy v2
+### Example using Caddy
 
-[Caddy](https://caddyserver.com) can also be used to automatically obtain a TLS certificate from Let's Encrypt and terminate TLS before proxying to your websocket server.
+[Caddy](https://caddyserver.com) can also be used to automatically obtain a TLS certificate from Let's Encrypt and terminate TLS before proxying to your echo server.
 
 An example configuration would look like this:
 
 ```
 socket.yourapp.tld {
-    @ws {
-        header Connection *Upgrade*
-        header Upgrade    websocket
+    rewrite / {
+        if {>Connection} has Upgrade
+        if {>Upgrade} is websocket
+        to /websocket-proxy/{path}?{query}
     }
-    reverse_proxy @ws 127.0.0.1:6001
+
+    proxy /websocket-proxy 127.0.0.1:6001 {
+        without /special-websocket-url
+        transparent
+        websocket
+    }
+    
+    tls youremail.com
 }
 ```
 
-Note that you should change `127.0.0.1` to the hostname of your websocket server. For example, if you're running in a Docker environment, this might be the container name of your websocket server.
+Note the `to /websocket-proxy`, this is a dummy path to allow the `proxy` directive to only proxy on websocket connections. This should be a path that will never be used by your application's routing. Also, note that you should change `127.0.0.1` to the hostname of your websocket server. For example, if you're running in a Docker environment, this might be the container name of your websocket server.
